@@ -317,6 +317,61 @@ func GetRegexInFile(path string, pattern string, replacement string, printError 
 	return regex.ReplaceAllString(regex.FindString(string(read)), replacement), nil
 }
 
+func GetAllRegexInFile(path string, pattern string, replacement string, printError bool) ([]string, error) {
+	// Get regex from file.
+	read, err := os.ReadFile(path)
+	if err != nil {
+		if printError {
+			fmt.Println(err)
+		}
+		return nil, err
+	}
+
+	// Find regex and only output based on the pattern specified.
+	values := []string{}
+	regex := regexp.MustCompile(pattern)
+	items := regex.FindAllString(string(read), -1)
+	for _, item := range items {
+		values = append(values, regex.ReplaceAllString(item, replacement))
+	}
+	return values, nil
+}
+
+func GetRegexInAllFiles(folder string, recursive bool, pattern string, replacement string) ([]string, error) {
+	// check if folder exists
+	if !DirExists(folder) {
+		err := errors.New("Folder does not exist!")
+		fmt.Println(err)
+		return nil, err
+	}
+
+	// iterate over items in folder
+	dir, _ := os.Open(folder)
+	objects, err := dir.Readdir(-1)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	values := []string{}
+	for _, object := range objects {
+		filepath := folder + "/" + object.Name()
+		if object.IsDir() {
+			// Replace in sub sub-dirs
+			_, err = GetRegexInAllFiles(folder, recursive, pattern, replacement)
+			if err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			val, _ := GetAllRegexInFile(filepath, pattern, replacement, false)
+			if len(val) > 0 {
+				values = append(values, val...)
+			}
+		}
+	}
+	return values, nil
+}
+
 func ReplaceRegexInFile(path string, pattern string, replacement string, printError bool) (err error) {
 	// Replace string in file based on regex.
 
@@ -385,6 +440,17 @@ func ContainsString(filepath string, needle string) bool {
 		}
 	}
 	return false
+}
+
+func FindAllStringsInFile(path string, pattern string) []string {
+	read, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	regex := regexp.MustCompile(pattern)
+	return regex.FindAllString(string(read), -1)
 }
 
 // tail
