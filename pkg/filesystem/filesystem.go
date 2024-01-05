@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -337,7 +338,7 @@ func GetAllRegexInFile(path string, pattern string, replacement string, printErr
 	return values, nil
 }
 
-func GetRegexInAllFiles(folder string, recursive bool, pattern string, replacement string) ([]string, error) {
+func GetRegexInAllFiles(folder string, recursive bool, pattern string, replacement string, fileExtension string) ([]string, error) {
 	// check if folder exists
 	if !DirExists(folder) {
 		err := errors.New("Folder does not exist!")
@@ -356,13 +357,20 @@ func GetRegexInAllFiles(folder string, recursive bool, pattern string, replaceme
 	values := []string{}
 	for _, object := range objects {
 		filepath := folder + "/" + object.Name()
+		// fmt.Println(filepath)
 		if object.IsDir() {
 			// Replace in sub sub-dirs
-			_, err = GetRegexInAllFiles(folder, recursive, pattern, replacement)
+			val, err := GetRegexInAllFiles(filepath, recursive, pattern, replacement, fileExtension)
 			if err != nil {
 				fmt.Println(err)
 			}
+			if len(val) > 0 {
+				values = append(values, val...)
+			}
 		} else {
+			if fileExtension != "" && fileExtension != path.Ext(filepath) {
+				continue
+			}
 			val, _ := GetAllRegexInFile(filepath, pattern, replacement, false)
 			if len(val) > 0 {
 				values = append(values, val...)

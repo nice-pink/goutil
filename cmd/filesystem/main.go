@@ -24,10 +24,11 @@ func main() {
 	// }
 	// fmt.Println(val)
 
-	val, err := filesystem.GetRegexInAllFiles("bin/test/", true, ".*(xxx.com.*)", "${1}")
+	val, err := filesystem.GetRegexInAllFiles("bin/", true, ".*(xxx.com.*)", "${1}", ".txt")
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println("Values")
 	fmt.Println(val)
 
 }
