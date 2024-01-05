@@ -24,7 +24,8 @@ func main() {
 	// }
 	// fmt.Println(val)
 
-	val, err := filesystem.GetRegexInAllFiles("bin/", true, ".*(xxx.com.*)", "${1}", ".txt")
+	extensions := []string{".txt"}
+	val, err := filesystem.GetRegexInAllFiles("bin/", true, ".*(xxx.com.*)", "${1}", extensions)
 	if err != nil {
 		fmt.Println(err)
 	}
