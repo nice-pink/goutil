@@ -16,3 +16,9 @@ func Error(logs ...any) {
 	params := append([]any{"❌ Error: "}, logs...)
 	fmt.Println(params...)
 }
+
+func Err(err error, logs ...any) {
+	params := append([]any{"❌ Error: "}, logs...)
+	fmt.Println(params...)
+	fmt.Println(err)
+}
