@@ -16,24 +16,24 @@ type Requester struct {
 
 // request
 
-func (r *Requester) Get(url string, printBody bool) (bool, error) {
+func (r *Requester) Get(url string, printBody bool) ([]byte, error) {
 	// request
 	resp, err := r.Request(http.MethodDelete, url, nil)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	// read and return
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Err(err, "Read all error.")
-		return false, err
+		return nil, err
 	}
 
 	if printBody {
 		log.Info(string(body))
 	}
-	return true, err
+	return body, err
 }
 
 func (r *Requester) Delete(url string) (bool, error) {
