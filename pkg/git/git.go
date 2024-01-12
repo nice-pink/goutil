@@ -27,6 +27,13 @@ func NewGit(sshKeyPath string, userName string, userEmail string) *Git {
 	}
 }
 
+// NOTE:
+// For save usage do:
+// - Clone() (shallow)
+// - PullLocalRepo()
+// - Do your changes to the repo
+// - CommitPushLocalRepo()
+
 // Clone
 func (g *Git) Clone(url string, dest string, branch string, shallow bool) error {
 	// auth
