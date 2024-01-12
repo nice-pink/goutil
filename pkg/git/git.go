@@ -2,40 +2,91 @@ package git
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/nice-pink/goutil/pkg/log"
 )
 
-var UserName string = ""
-var UserEmail string = ""
-var SshKeyPath string = ""
+type Git struct {
+	userName   string
+	userEmail  string
+	sshKeyPath string
+}
 
-func Setup(user string, email string, keypath string) {
-	UserName = user
-	UserEmail = email
-	SshKeyPath = keypath
+func NewGit(sshKeyPath string, userName string, userEmail string) *Git {
+	return &Git{
+		userName:   userName,
+		userEmail:  userEmail,
+		sshKeyPath: sshKeyPath,
+	}
+}
+
+// Clone
+func (g *Git) Clone(url string, dest string, branch string, shallow bool) error {
+	// auth
+	// sshKeyPath := os.Getenv("SSH_KEY_PATH")
+	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
+	if err != nil {
+		log.Err(err, "key")
+		return err
+	}
+
+	// set clone options
+	cloneOpt := &git.CloneOptions{
+		URL:               url,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+		Auth:              auth,
+	}
+
+	if branch != "" {
+		cloneOpt.ReferenceName = plumbing.NewBranchReferenceName(branch)
+	}
+
+	if shallow {
+		cloneOpt.Depth = 1
+		cloneOpt.SingleBranch = true
+		cloneOpt.ShallowSubmodules = true
+	}
+
+	// clone repo
+	path := strings.Split(url, "/")
+	dest = filepath.Join(dest, path[len(path)-1])
+	r, err := git.PlainClone(dest, false, cloneOpt)
+	if err != nil {
+		log.Err(err, "clone")
+		return err
+	}
+
+	// ... retrieving the branch being pointed by HEAD
+	_, err = r.Head()
+	if err != nil {
+		log.Err(err)
+	}
+	return err
 }
 
 // Pull repo
-func PullLocalRepo(path string) error {
-	auth, err := ssh.NewPublicKeysFromFile("git", SshKeyPath, "")
+func (g *Git) PullLocalRepo(path string) error {
+	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
 	if err != nil {
 		panic(err)
 	}
 
 	repo, err := git.PlainOpen(path)
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err, "open")
 		return err
 	}
 
 	workDir, err := repo.Worktree()
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err, "worktree")
 		return err
 	}
 
@@ -49,15 +100,15 @@ func PullLocalRepo(path string) error {
 	if err == git.NoErrAlreadyUpToDate {
 		// do nothing
 	} else if err != nil {
-		fmt.Println(err)
+		log.Err(err, "pull")
 	}
 	return err
 }
 
 // Pull, commit and push repo.
-func CommitPushLocalRepo(path string, message string, pull bool) error {
+func (g *Git) CommitPushLocalRepo(path string, message string, pull bool) error {
 	// Open key file for auth
-	auth, err := ssh.NewPublicKeysFromFile("git", SshKeyPath, "")
+	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
 	if err != nil {
 		panic(err)
 	}
@@ -65,14 +116,14 @@ func CommitPushLocalRepo(path string, message string, pull bool) error {
 	// Open folder as git repo
 	repo, err := git.PlainOpen(path)
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err, "open")
 		return err
 	}
 
 	// Get worktree
 	workDir, err := repo.Worktree()
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err, "worktree")
 		return err
 	}
 
@@ -88,15 +139,14 @@ func CommitPushLocalRepo(path string, message string, pull bool) error {
 		if err == git.NoErrAlreadyUpToDate {
 			// do nothing
 		} else if err != nil {
-			fmt.Println("could not pull.")
-			fmt.Println(err)
+			log.Err(err, "pull")
 		}
 	}
 
 	// Get status
 	status, err := workDir.Status()
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err, "status")
 		return err
 	}
 
@@ -109,20 +159,20 @@ func CommitPushLocalRepo(path string, message string, pull bool) error {
 	// Commit changes
 	commit, err := workDir.Commit(message, &git.CommitOptions{
 		Author: &object.Signature{
-			Name:  UserName,
-			Email: UserEmail,
+			Name:  g.userName,
+			Email: g.userEmail,
 			When:  time.Now(),
 		},
 	})
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err, "commit")
 		return err
 	}
 
 	// Print commit object
 	obj, err := repo.CommitObject(commit)
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err, "commit object")
 		return err
 	}
 	fmt.Println(obj)
@@ -133,8 +183,7 @@ func CommitPushLocalRepo(path string, message string, pull bool) error {
 		Auth: auth,
 	})
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println("could not push.")
+		log.Err(err, "push")
 		return err
 	}
 
@@ -144,9 +193,9 @@ func CommitPushLocalRepo(path string, message string, pull bool) error {
 }
 
 // Reset local repo to origin/main HEAD and clean unstaged files.
-func ResetToRemoteHead(path string) error {
+func (g *Git) ResetToRemoteHead(path string) error {
 	// Open key file for auth
-	auth, err := ssh.NewPublicKeysFromFile("git", SshKeyPath, "")
+	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
 	if err != nil {
 		panic(err)
 	}
