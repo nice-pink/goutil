@@ -106,7 +106,7 @@ func (g *Git) PullLocalRepo(path string) error {
 }
 
 // Pull, commit and push repo.
-func (g *Git) CommitPushLocalRepo(path string, message string, pull bool, verbose bool) error {
+func (g *Git) CommitPushLocalRepo(path string, message string, verbose bool) error {
 	// Open key file for auth
 	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
 	if err != nil {
@@ -132,23 +132,24 @@ func (g *Git) CommitPushLocalRepo(path string, message string, pull bool, verbos
 	// }
 
 	// Pull remote
-	if pull {
-		err = workDir.Pull(&git.PullOptions{
-			// RemoteName:   "origin",
-			SingleBranch: true,
-			Depth:        1,
-			Auth:         auth,
-			// Force:        true,
-		})
-		if err == git.NoErrAlreadyUpToDate {
-			// do nothing
-		} else if err != nil {
-			log.Err(err, "pull")
-		}
-		if verbose {
-			log.Info("Pulled repo.")
-		}
-	}
+	// Note: The pull overwrites the current repo and undoes all changes!
+	// if pull {
+	// 	err = workDir.Pull(&git.PullOptions{
+	// 		// RemoteName:   "origin",
+	// 		SingleBranch: true,
+	// 		Depth:        1,
+	// 		Auth:         auth,
+	// 		Force:        true,
+	// 	})
+	// 	if err == git.NoErrAlreadyUpToDate {
+	// 		// do nothing
+	// 	} else if err != nil {
+	// 		log.Err(err, "pull")
+	// 	}
+	// 	if verbose {
+	// 		log.Info("Pulled repo.")
+	// 	}
+	// }
 
 	// Get status
 	status, err := workDir.Status()
