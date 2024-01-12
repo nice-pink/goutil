@@ -25,6 +25,7 @@ func (r *Requester) Get(url string, printBody bool) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	// read and return
 	body, err := io.ReadAll(resp.Body)
@@ -45,6 +46,7 @@ func (r *Requester) Delete(url string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	defer resp.Body.Close()
 
 	// read and return
 	if resp.StatusCode != 200 && resp.StatusCode != 202 {
@@ -84,7 +86,6 @@ func (r *Requester) Request(method string, url string, body io.Reader) (*http.Re
 		log.Err(err, "Client error.")
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	return resp, err
 }
