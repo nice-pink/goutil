@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/nice-pink/goutil/log"
 	"github.com/nice-pink/goutil/pkg/log"
 )
 
