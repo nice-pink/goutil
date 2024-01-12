@@ -21,7 +21,7 @@ func NewRequester(config RequestConfig) *Requester {
 
 func (r *Requester) Get(url string, printBody bool) ([]byte, error) {
 	// request
-	resp, err := r.Request(http.MethodDelete, url, nil)
+	resp, err := r.Request(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
