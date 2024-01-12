@@ -106,7 +106,7 @@ func (g *Git) PullLocalRepo(path string) error {
 }
 
 // Pull, commit and push repo.
-func (g *Git) CommitPushLocalRepo(path string, message string, pull bool) error {
+func (g *Git) CommitPushLocalRepo(path string, message string, pull bool, verbose bool) error {
 	// Open key file for auth
 	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
 	if err != nil {
@@ -126,6 +126,10 @@ func (g *Git) CommitPushLocalRepo(path string, message string, pull bool) error 
 		log.Err(err, "worktree")
 		return err
 	}
+	if verbose {
+		log.Info("workDir:")
+		log.Info(workDir)
+	}
 
 	// Pull remote
 	if pull {
@@ -134,12 +138,15 @@ func (g *Git) CommitPushLocalRepo(path string, message string, pull bool) error 
 			SingleBranch: true,
 			Depth:        1,
 			Auth:         auth,
-			Force:        true,
+			// Force:        true,
 		})
 		if err == git.NoErrAlreadyUpToDate {
 			// do nothing
 		} else if err != nil {
 			log.Err(err, "pull")
+		}
+		if verbose {
+			log.Info("Pulled repo.")
 		}
 	}
 
@@ -148,6 +155,10 @@ func (g *Git) CommitPushLocalRepo(path string, message string, pull bool) error 
 	if err != nil {
 		log.Err(err, "status")
 		return err
+	}
+	if verbose {
+		log.Info("status:")
+		log.Info(status)
 	}
 
 	// Add all files, with changes.
