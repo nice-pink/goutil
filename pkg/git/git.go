@@ -126,10 +126,10 @@ func (g *Git) CommitPushLocalRepo(path string, message string, pull bool, verbos
 		log.Err(err, "worktree")
 		return err
 	}
-	if verbose {
-		log.Info("workDir:")
-		log.Info(workDir)
-	}
+	// if verbose {
+	// 	log.Info("workDir:")
+	//  log.Info(workDir)
+	// }
 
 	// Pull remote
 	if pull {
@@ -158,11 +158,11 @@ func (g *Git) CommitPushLocalRepo(path string, message string, pull bool, verbos
 	}
 	if verbose {
 		log.Info("status:")
-		log.Info(status)
+		log.Info(status.String())
 	}
 
 	// Add all files, with changes.
-	for path, _ := range status {
+	for path := range status {
 		fmt.Println("Added: " + path)
 		workDir.Add(path)
 	}
