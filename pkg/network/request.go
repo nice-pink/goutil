@@ -13,6 +13,10 @@ type Requester struct {
 	config RequestConfig
 }
 
+func NewRequester(config RequestConfig) *Requester {
+	return &Requester{config: config}
+}
+
 // request
 
 func (r *Requester) Get(url string, printBody bool) ([]byte, error) {
