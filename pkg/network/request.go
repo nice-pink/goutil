@@ -61,17 +61,17 @@ func (r *Requester) Request(method string, url string, body io.Reader) (*http.Re
 	}
 
 	// auth
-	if r.config.auth.BearerToken != "" {
-		var bearer = "Bearer " + r.config.auth.BearerToken
+	if r.config.Auth.BearerToken != "" {
+		var bearer = "Bearer " + r.config.Auth.BearerToken
 		req.Header.Add("Authorization", bearer)
-	} else if r.config.auth.BasicUser != "" && r.config.auth.BasicPassword != "" {
+	} else if r.config.Auth.BasicUser != "" && r.config.Auth.BasicPassword != "" {
 		// add basic auth
-		req.SetBasicAuth(r.config.auth.BasicUser, r.config.auth.BasicPassword)
+		req.SetBasicAuth(r.config.Auth.BasicUser, r.config.Auth.BasicPassword)
 	}
 
 	// header
-	if r.config.accept != "" {
-		req.Header.Add("Accept", r.config.accept)
+	if r.config.Accept != "" {
+		req.Header.Add("Accept", r.config.Accept)
 	}
 
 	// request

@@ -8,6 +8,6 @@ type Auth struct {
 }
 
 type RequestConfig struct {
-	auth   Auth
-	accept string // e.g. "application/json"
+	Auth   Auth
+	Accept string // e.g. "application/json"
 }
