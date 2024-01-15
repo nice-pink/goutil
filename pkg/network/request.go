@@ -80,7 +80,7 @@ func (r *Requester) Request(method string, url string, body io.Reader) (*http.Re
 	}
 
 	// request
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: r.config.Timeout * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Err(err, "Client error.")
