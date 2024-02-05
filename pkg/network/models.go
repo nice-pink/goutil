@@ -13,7 +13,7 @@ type RequestConfig struct {
 	Auth     Auth
 	Accept   string // e.g. "application/json"
 	Timeout  time.Duration
-	MaxBytes float32 // stop after reading bytes
+	MaxBytes int64 // stop after reading bytes
 }
 
 func DefaultRequestConfig() RequestConfig {
