@@ -245,6 +245,18 @@ func DeleteFile(filepath string) error {
 	return os.Remove(filepath)
 }
 
+func DeleteFiles(filepaths []string) {
+	// Delete file
+	for _, path := range filepaths {
+		err := os.Remove(path)
+		if err != nil {
+			log.Info("---")
+			log.Err(err)
+			log.Info("---")
+		}
+	}
+}
+
 func DeleteFolder(folderpath string) error {
 	// Delete folder
 	return os.RemoveAll(folderpath)
