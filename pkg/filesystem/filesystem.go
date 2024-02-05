@@ -198,6 +198,12 @@ func RemoveLineWithSubstringFromFile(filepath string, substring string) (success
 
 // list
 
+func IsOlderThan(timeStamp time.Time, sec int64) bool {
+	now := time.Now()
+	passed := time.Duration(sec) * time.Second
+	return timeStamp.Add(passed).Before(now)
+}
+
 func ListFiles(folder string, olderThanSeconds int64, ignoreHiddenFiles bool) []string {
 	files, err := os.ReadDir(folder)
 	if err != nil {
@@ -227,9 +233,7 @@ func ListFiles(folder string, olderThanSeconds int64, ignoreHiddenFiles bool) []
 			filenames = append(filenames, filepath)
 		}
 
-		now := time.Now()
-		ago := time.Duration(olderThanSeconds) * time.Second
-		if fileInfo.ModTime().Add(ago).Before(now) {
+		if IsOlderThan(fileInfo.ModTime(), olderThanSeconds) {
 			// append file
 			filenames = append(filenames, filepath)
 		}
