@@ -11,10 +11,14 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/nice-pink/goutil/pkg/log"
 )
 
 // open
@@ -190,6 +194,48 @@ func RemoveLineWithSubstringFromFile(filepath string, substring string) (success
 	file.Seek(0, 0)
 	buf.WriteTo(file)
 	return found, nil
+}
+
+// list
+
+func ListFiles(folder string, olderThanSeconds int64, ignoreHiddenFiles bool) []string {
+	files, err := os.ReadDir(folder)
+	if err != nil {
+		log.Err(err)
+	}
+
+	filenames := []string{}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		// ignore hidden files
+		if ignoreHiddenFiles && strings.HasPrefix(file.Name(), ".") {
+			continue
+		}
+
+		filepath := filepath.Join(folder, file.Name())
+		fileInfo, err := os.Stat(filepath)
+		if err != nil {
+			log.Err(err)
+			continue
+		}
+
+		// check time
+		if olderThanSeconds <= 0 {
+			filenames = append(filenames, filepath)
+		}
+
+		now := time.Now()
+		ago := time.Duration(olderThanSeconds) * time.Second
+		if fileInfo.ModTime().Add(ago).Before(now) {
+			// append file
+			filenames = append(filenames, filepath)
+		}
+	}
+
+	return filenames
 }
 
 // delete
