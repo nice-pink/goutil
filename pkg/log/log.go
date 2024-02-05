@@ -1,6 +1,9 @@
 package log
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func Info(logs ...any) {
 	//params := append([]any{" "}, logs...)
@@ -21,4 +24,8 @@ func Err(err error, logs ...any) {
 	params := append([]any{"❌ Error: "}, logs...)
 	fmt.Println(params...)
 	fmt.Println(err)
+}
+
+func Time() {
+	fmt.Println(time.Now())
 }
