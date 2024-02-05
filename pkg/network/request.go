@@ -1,8 +1,10 @@
 package network
 
 import (
+	"bufio"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -21,7 +23,7 @@ func NewRequester(config RequestConfig) *Requester {
 
 func (r *Requester) Get(url string, printBody bool) ([]byte, error) {
 	// request
-	resp, err := r.Request(http.MethodGet, url, nil)
+	resp, err := r.Request(http.MethodGet, url, false, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +44,7 @@ func (r *Requester) Get(url string, printBody bool) ([]byte, error) {
 
 func (r *Requester) Delete(url string) (bool, error) {
 	// request
-	resp, err := r.Request(http.MethodDelete, url, nil)
+	resp, err := r.Request(http.MethodDelete, url, false, nil)
 	if err != nil {
 		return false, err
 	}
@@ -57,7 +59,51 @@ func (r *Requester) Delete(url string) (bool, error) {
 	return true, nil
 }
 
-func (r *Requester) Request(method string, url string, body io.Reader) (*http.Response, error) {
+// stream
+
+func (r *Requester) ReadStream(url string, dumpToFile string) error {
+	// request
+	resp, err := r.Request(http.MethodGet, url, true, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// open file
+	writeToFile := false
+	var file *os.File = nil
+	if dumpToFile != "" {
+		file, err = os.Create(dumpToFile)
+		writeToFile = true
+		defer func() {
+			if err := file.Close(); err != nil {
+				log.Err(err, "Could not close file.")
+			}
+		}()
+	}
+
+	// read data
+	var bytesRead int64 = 0
+	reader := bufio.NewReader(resp.Body)
+	for {
+		line, _ := reader.ReadBytes('\n')
+		if writeToFile {
+			file.Write(line)
+		}
+		bytesRead += int64(len(line))
+
+		if r.config.MaxBytes > 0 && bytesRead > int64(r.config.MaxBytes) {
+			log.Info("Stop: Max bytes read", bytesRead)
+			break
+		}
+	}
+
+	return err
+}
+
+// common
+
+func (r *Requester) Request(method string, url string, isStream bool, body io.Reader) (*http.Response, error) {
 	// build request
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
