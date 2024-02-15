@@ -35,20 +35,21 @@ func NewGit(sshKeyPath string, userName string, userEmail string) *Git {
 // - CommitPushLocalRepo()
 
 // Clone
-func (g *Git) Clone(url string, dest string, branch string, shallow bool) error {
-	// auth
-	// sshKeyPath := os.Getenv("SSH_KEY_PATH")
-	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
-	if err != nil {
-		log.Err(err, "key")
-		return err
-	}
-
+func (g *Git) Clone(url string, dest string, branch string, shallow bool, repoSubfolder bool) error {
 	// set clone options
 	cloneOpt := &git.CloneOptions{
 		URL:               url,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
-		Auth:              auth,
+	}
+
+	// setup ssh auth
+	if g.sshKeyPath != "" {
+		auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
+		if err != nil {
+			log.Err(err, "key")
+			return err
+		}
+		cloneOpt.Auth = auth
 	}
 
 	if branch != "" {
@@ -62,8 +63,10 @@ func (g *Git) Clone(url string, dest string, branch string, shallow bool) error 
 	}
 
 	// clone repo
-	path := strings.Split(url, "/")
-	dest = filepath.Join(dest, path[len(path)-1])
+	if repoSubfolder {
+		path := strings.Split(url, "/")
+		dest = filepath.Join(dest, path[len(path)-1])
+	}
 	r, err := git.PlainClone(dest, false, cloneOpt)
 	if err != nil {
 		log.Err(err, "clone")
@@ -80,11 +83,6 @@ func (g *Git) Clone(url string, dest string, branch string, shallow bool) error 
 
 // Pull repo
 func (g *Git) PullLocalRepo(path string) error {
-	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
-	if err != nil {
-		panic(err)
-	}
-
 	repo, err := git.PlainOpen(path)
 	if err != nil {
 		log.Err(err, "open")
@@ -97,29 +95,55 @@ func (g *Git) PullLocalRepo(path string) error {
 		return err
 	}
 
-	err = workDir.Pull(&git.PullOptions{
-		RemoteName:   "origin",
+	// fetch opt
+	fetchOpt := &git.FetchOptions{
+		Depth: 1,
+		Force: true,
+	}
+
+	// pull opt
+	pullOpt := &git.PullOptions{
 		SingleBranch: true,
 		Depth:        1,
-		Auth:         auth,
 		Force:        true,
-	})
+	}
+
+	// setup ssh auth
+	if g.sshKeyPath != "" {
+		auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
+		if err != nil {
+			panic(err)
+		}
+		pullOpt.Auth = auth
+		fetchOpt.Auth = auth
+	}
+
+	// Fetch remote
+	repo.Fetch(fetchOpt)
+
+	err = workDir.Pull(pullOpt)
 	if err == git.NoErrAlreadyUpToDate {
 		// do nothing
 	} else if err != nil {
 		log.Err(err, "pull")
+		// err = g.ResetToRemoteHead(path)
+		// if err != nil {
+		// 	log.Err(err)
+		// } else {
+		// 	err = workDir.Pull(pullOpt)
+		// 	if err != nil {
+		// 		log.Err(err)
+		// 	}
+		// }
+	} else {
+		log.Info("Pulled repo.")
 	}
+
 	return err
 }
 
 // Pull, commit and push repo.
 func (g *Git) CommitPushLocalRepo(path string, message string, verbose bool) error {
-	// Open key file for auth
-	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
-	if err != nil {
-		panic(err)
-	}
-
 	// Open folder as git repo
 	repo, err := git.PlainOpen(path)
 	if err != nil {
@@ -196,11 +220,20 @@ func (g *Git) CommitPushLocalRepo(path string, message string, verbose bool) err
 	}
 	fmt.Println(obj)
 
+	pushOpt := &git.PushOptions{}
+
+	// setup ssh auth
+	if g.sshKeyPath != "" {
+		// Open key file for auth
+		auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
+		if err != nil {
+			panic(err)
+		}
+		pushOpt.Auth = auth
+	}
+
 	// Push
-	err = repo.Push(&git.PushOptions{
-		// RemoteName: "origin",
-		Auth: auth,
-	})
+	err = repo.Push(pushOpt)
 	if err != nil {
 		log.Err(err, "push")
 		return err
@@ -235,9 +268,11 @@ func (g *Git) ResetToRemoteHead(path string) error {
 
 	// Fetch remote
 	err = repo.Fetch(&git.FetchOptions{
-		RemoteName: "origin",
-		Auth:       auth,
+		Auth: auth,
 	})
+	if err != nil {
+		log.Err(err, "fetch")
+	}
 
 	// Get remote head
 	remoteRef, err := repo.Reference(plumbing.Main, true)
@@ -247,7 +282,7 @@ func (g *Git) ResetToRemoteHead(path string) error {
 	}
 
 	// Reset
-	err = workDir.Reset(&git.ResetOptions{
+	workDir.Reset(&git.ResetOptions{
 		Mode:   git.HardReset,
 		Commit: remoteRef.Hash(),
 	})
