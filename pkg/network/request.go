@@ -68,6 +68,8 @@ func (r *Requester) Delete(url string) (bool, error) {
 // stream
 
 func (r *Requester) ReadStream(url string, dumpToFile string) error {
+	r.streamInfo.Url = url
+
 	// request
 	resp, err := r.Request(http.MethodGet, url, true, nil)
 	if err != nil {
