@@ -11,8 +11,14 @@ import (
 	"github.com/nice-pink/goutil/pkg/log"
 )
 
+type StreamInfo struct {
+	Url       string
+	BytesRead uint64
+}
+
 type Requester struct {
-	config RequestConfig
+	config     RequestConfig
+	streamInfo StreamInfo
 }
 
 func NewRequester(config RequestConfig) *Requester {
@@ -83,22 +89,27 @@ func (r *Requester) ReadStream(url string, dumpToFile string) error {
 	}
 
 	// read data
-	var bytesRead int64 = 0
 	reader := bufio.NewReader(resp.Body)
 	for {
 		line, _ := reader.ReadBytes('\n')
 		if writeToFile {
 			file.Write(line)
 		}
-		bytesRead += int64(len(line))
+		r.streamInfo.BytesRead += uint64(len(line))
 
-		if r.config.MaxBytes > 0 && bytesRead > int64(r.config.MaxBytes) {
-			log.Info("Stop: Max bytes read", bytesRead)
+		if r.config.MaxBytes > 0 && r.streamInfo.BytesRead > uint64(r.config.MaxBytes) {
+			log.Info("Stop: Max bytes read", r.streamInfo.BytesRead)
 			break
 		}
 	}
 
 	return err
+}
+
+func (r *Requester) PrintStreamInfo() {
+	log.Info()
+	log.Info("Url:", r.streamInfo.Url)
+	log.Info("Bytes read:", r.streamInfo.BytesRead)
 }
 
 // common
