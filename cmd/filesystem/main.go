@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 
-	"github.com/nice-pink/goutil/pkg/filesystem"
+	"github.com/nice-pink/goutil/pkg/log"
 )
 
 func main() {
@@ -24,12 +24,18 @@ func main() {
 	// }
 	// fmt.Println(val)
 
-	extensions := []string{".txt"}
-	val, err := filesystem.GetRegexInAllFiles("bin/", true, ".*(xxx.com.*)", "${1}", extensions)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("Values")
-	fmt.Println(val)
+	log.Info("bla")
+	log.Warn("warn")
+	log.Error("This is error")
+	err := errors.New("bla")
+	log.Err(err, "This is error")
+
+	// extensions := []string{".txt"}
+	// val, err := filesystem.GetRegexInAllFiles("bin/", true, ".*(xxx.com.*)", "${1}", extensions)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println("Values")
+	// fmt.Println(val)
 
 }
