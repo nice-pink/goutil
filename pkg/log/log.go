@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+func Newline() {
+	fmt.Println()
+}
+
 func Info(logs ...any) {
 	params := append([]any{time.Now().Format(time.DateTime) + " ->"}, logs...)
 	fmt.Println(params...)
