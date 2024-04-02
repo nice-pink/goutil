@@ -10,6 +10,7 @@ type Auth struct {
 }
 
 type RequestConfig struct {
+	LogLevel int
 	Auth     Auth
 	Accept   string // e.g. "application/json"
 	Timeout  time.Duration

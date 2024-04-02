@@ -28,6 +28,10 @@ func NewRequester(config RequestConfig) *Requester {
 // request
 
 func (r *Requester) Get(url string, printBody bool) ([]byte, error) {
+	if r.config.LogLevel > 0 {
+		log.Info("Get:", url)
+	}
+
 	// request
 	resp, err := r.Request(http.MethodGet, url, false, nil)
 	if err != nil {
@@ -49,6 +53,10 @@ func (r *Requester) Get(url string, printBody bool) ([]byte, error) {
 }
 
 func (r *Requester) Delete(url string) (bool, error) {
+	if r.config.LogLevel > 0 {
+		log.Info("Delete:", url)
+	}
+
 	// request
 	resp, err := r.Request(http.MethodDelete, url, false, nil)
 	if err != nil {
@@ -68,6 +76,10 @@ func (r *Requester) Delete(url string) (bool, error) {
 // stream
 
 func (r *Requester) ReadStream(url string, dumpToFile string) error {
+	if r.config.LogLevel > 0 {
+		log.Info("Read stream:", url)
+	}
+
 	r.streamInfo.Url = url
 
 	// request
@@ -128,14 +140,26 @@ func (r *Requester) Request(method string, url string, isStream bool, body io.Re
 	if r.config.Auth.BearerToken != "" {
 		var bearer = "Bearer " + r.config.Auth.BearerToken
 		req.Header.Add("Authorization", bearer)
+
+		if r.config.LogLevel > 2 {
+			log.Info("Bearer auth:", bearer)
+		}
 	} else if r.config.Auth.BasicUser != "" && r.config.Auth.BasicPassword != "" {
 		// add basic auth
 		req.SetBasicAuth(r.config.Auth.BasicUser, r.config.Auth.BasicPassword)
+
+		if r.config.LogLevel > 2 {
+			log.Info("Basic auth:", r.config.Auth.BasicUser, r.config.Auth.BasicPassword)
+		}
 	}
 
 	// header
 	if r.config.Accept != "" {
 		req.Header.Add("Accept", r.config.Accept)
+
+		if r.config.LogLevel > 1 {
+			log.Info("Accept:", r.config.Accept)
+		}
 	}
 
 	// request
