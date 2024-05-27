@@ -1,6 +1,7 @@
 package log
 
 import (
+	"flag"
 	"fmt"
 	"time"
 )
@@ -32,4 +33,17 @@ func Err(err error, logs ...any) {
 
 func Time() {
 	fmt.Println(time.Now())
+}
+
+func Flags(withNewLine bool) {
+	if withNewLine {
+		fmt.Println()
+	}
+	fmt.Println("Flags:")
+	flag.VisitAll(func(f *flag.Flag) {
+		fmt.Printf("-%s: %s\n", f.Name, f.Value)
+	})
+	if withNewLine {
+		fmt.Println()
+	}
 }
