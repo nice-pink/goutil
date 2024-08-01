@@ -26,6 +26,14 @@ func main() {
 	flag.Parse()
 
 	TIMEOUT = time.Duration(*timeout) * time.Second
+	if TIMEOUT > 0 {
+		timer := time.NewTimer(time.Second)
+		go func() {
+			<-timer.C
+			os.Exit(2)
+		}()
+	}
+
 	ENDPOINTS = strings.Split(*endpoints, ",")
 	sort.Strings(ENDPOINTS)
 
