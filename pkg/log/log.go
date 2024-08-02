@@ -37,6 +37,10 @@ func Warn(logs ...any) {
 	fmt.Println(params...)
 }
 
+func Warning(logs ...any) {
+	Warn(logs...)
+}
+
 func Error(logs ...any) {
 	params := append([]any{Red + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
 	fmt.Println(params...)
@@ -49,14 +53,14 @@ func Err(err error, logs ...any) {
 }
 
 func Critical(logs ...any) {
-	params := append([]any{Red + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
+	params := append([]any{Magenta + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
 	fmt.Println(params...)
 }
 
 // special
 
-func Head(logs ...any) {
-	params := append([]any{Red + time.Now().Format(time.DateTime) + " :" + Reset}, logs...)
+func Notify(logs ...any) {
+	params := append([]any{Blue + time.Now().Format(time.DateTime) + " INFO:" + Reset}, logs...)
 	fmt.Println(params...)
 }
 
