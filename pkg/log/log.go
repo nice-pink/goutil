@@ -3,6 +3,8 @@ package log
 import (
 	"flag"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -33,7 +35,12 @@ func Info(logs ...any) {
 }
 
 func Warn(logs ...any) {
-	params := append([]any{Yellow + time.Now().Format(time.DateTime) + " WARNING:" + Reset}, logs...)
+	var params []any
+	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+		params = append([]any{time.Now().Format(time.DateTime) + " WARNING:"}, logs...)
+	} else {
+		params = append([]any{Yellow + time.Now().Format(time.DateTime) + " WARNING:" + Reset}, logs...)
+	}
 	fmt.Println(params...)
 }
 
@@ -42,25 +49,45 @@ func Warning(logs ...any) {
 }
 
 func Error(logs ...any) {
-	params := append([]any{Red + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
+	var params []any
+	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+		params = append([]any{time.Now().Format(time.DateTime) + " ERROR:"}, logs...)
+	} else {
+		params = append([]any{Red + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
+	}
 	fmt.Println(params...)
 }
 
 func Err(err error, logs ...any) {
-	params := append([]any{Red + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
+	var params []any
+	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+		params = append([]any{time.Now().Format(time.DateTime) + " ERROR:"}, logs...)
+	} else {
+		params = append([]any{Red + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
+	}
 	fmt.Println(params...)
 	fmt.Println(err)
 }
 
 func Critical(logs ...any) {
-	params := append([]any{Magenta + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
+	var params []any
+	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+		params = append([]any{time.Now().Format(time.DateTime) + " ERROR:"}, logs...)
+	} else {
+		params = append([]any{Magenta + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
+	}
 	fmt.Println(params...)
 }
 
 // special
 
 func Notify(logs ...any) {
-	params := append([]any{Blue + time.Now().Format(time.DateTime) + " INFO:" + Reset}, logs...)
+	var params []any
+	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+		params = append([]any{time.Now().Format(time.DateTime) + " INFO:"}, logs...)
+	} else {
+		params = append([]any{Blue + time.Now().Format(time.DateTime) + " INFO:" + Reset}, logs...)
+	}
 	fmt.Println(params...)
 }
 
