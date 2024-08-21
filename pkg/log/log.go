@@ -36,7 +36,7 @@ func Info(logs ...any) {
 
 func Warn(logs ...any) {
 	var params []any
-	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+	if strings.ToLower(os.Getenv("LOG_IGNORE_COLOR")) == "true" {
 		params = append([]any{time.Now().Format(time.DateTime) + " WARNING:"}, logs...)
 	} else {
 		params = append([]any{Yellow + time.Now().Format(time.DateTime) + " WARNING:" + Reset}, logs...)
@@ -50,7 +50,7 @@ func Warning(logs ...any) {
 
 func Error(logs ...any) {
 	var params []any
-	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+	if strings.ToLower(os.Getenv("LOG_IGNORE_COLOR")) == "true" {
 		params = append([]any{time.Now().Format(time.DateTime) + " ERROR:"}, logs...)
 	} else {
 		params = append([]any{Red + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
@@ -60,7 +60,7 @@ func Error(logs ...any) {
 
 func Err(err error, logs ...any) {
 	var params []any
-	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+	if strings.ToLower(os.Getenv("LOG_IGNORE_COLOR")) == "true" {
 		params = append([]any{time.Now().Format(time.DateTime) + " ERROR:"}, logs...)
 	} else {
 		params = append([]any{Red + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
@@ -71,7 +71,7 @@ func Err(err error, logs ...any) {
 
 func Critical(logs ...any) {
 	var params []any
-	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+	if strings.ToLower(os.Getenv("LOG_IGNORE_COLOR")) == "true" {
 		params = append([]any{time.Now().Format(time.DateTime) + " ERROR:"}, logs...)
 	} else {
 		params = append([]any{Magenta + time.Now().Format(time.DateTime) + " ERROR:" + Reset}, logs...)
@@ -83,7 +83,7 @@ func Critical(logs ...any) {
 
 func Notify(logs ...any) {
 	var params []any
-	if strings.ToLower(os.Getenv("IGNORE_COLOR")) == "true" {
+	if strings.ToLower(os.Getenv("LOG_IGNORE_COLOR")) == "true" {
 		params = append([]any{time.Now().Format(time.DateTime) + " INFO:"}, logs...)
 	} else {
 		params = append([]any{Blue + time.Now().Format(time.DateTime) + " INFO:" + Reset}, logs...)
