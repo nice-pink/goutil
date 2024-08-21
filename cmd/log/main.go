@@ -6,6 +6,13 @@ import (
 	"github.com/nice-pink/goutil/pkg/log"
 )
 
+// func main() {
+// 	slog.Debug("debug log")
+// 	slog.Info("info log")
+// 	slog.Warn("warn log")
+// 	slog.Error("error log")
+// }
+
 func main() {
 	log.Debug("debug log")
 	log.Info("info log")
