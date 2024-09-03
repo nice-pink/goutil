@@ -1,4 +1,4 @@
-package git
+package repo
 
 import (
 	"fmt"
@@ -13,14 +13,14 @@ import (
 	"github.com/nice-pink/goutil/pkg/log"
 )
 
-type Git struct {
+type GitRepo struct {
 	userName   string
 	userEmail  string
 	sshKeyPath string
 }
 
-func NewGit(sshKeyPath string, userName string, userEmail string) *Git {
-	return &Git{
+func NewGitRepo(sshKeyPath string, userName string, userEmail string) *GitRepo {
+	return &GitRepo{
 		userName:   userName,
 		userEmail:  userEmail,
 		sshKeyPath: sshKeyPath,
@@ -35,7 +35,7 @@ func NewGit(sshKeyPath string, userName string, userEmail string) *Git {
 // - CommitPushLocalRepo()
 
 // Clone
-func (g *Git) Clone(url string, dest string, branch string, shallow bool, repoSubfolder bool) error {
+func (g *GitRepo) Clone(url string, dest string, branch string, shallow bool, repoSubfolder bool) error {
 	// set clone options
 	cloneOpt := &git.CloneOptions{
 		URL:               url,
@@ -82,7 +82,7 @@ func (g *Git) Clone(url string, dest string, branch string, shallow bool, repoSu
 }
 
 // Pull repo
-func (g *Git) PullLocalRepo(path string) error {
+func (g *GitRepo) PullLocalRepo(path string) error {
 	repo, err := git.PlainOpen(path)
 	if err != nil {
 		log.Err(err, "open")
@@ -143,7 +143,7 @@ func (g *Git) PullLocalRepo(path string) error {
 }
 
 // Pull, commit and push repo.
-func (g *Git) CommitPushLocalRepo(path string, message string, verbose bool) error {
+func (g *GitRepo) CommitPushLocalRepo(path string, message string, verbose bool) error {
 	// Open folder as git repo
 	repo, err := git.PlainOpen(path)
 	if err != nil {
@@ -245,7 +245,7 @@ func (g *Git) CommitPushLocalRepo(path string, message string, verbose bool) err
 }
 
 // Reset local repo to origin/main HEAD and clean unstaged files.
-func (g *Git) ResetToRemoteHead(path string) error {
+func (g *GitRepo) ResetToRemoteHead(path string) error {
 	// Open key file for auth
 	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
 	if err != nil {

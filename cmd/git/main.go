@@ -4,7 +4,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/nice-pink/goutil/pkg/git"
+	"github.com/nice-pink/goutil/pkg/repo"
 )
 
 func main() {
@@ -14,13 +14,13 @@ func main() {
 	flag.Parse()
 
 	sshKeyPath := os.Getenv("SSH_KEY_PATH")
-	repo := os.Getenv("REPO")
-	repoUser := os.Getenv("REPO_USER")
-	repoEmail := os.Getenv("REPO_EMAIL")
-	g := git.NewGit(sshKeyPath, repoUser, repoEmail)
+	repository := os.Getenv("REPO")
+	repositoryUser := os.Getenv("REPO_USER")
+	repositoryEmail := os.Getenv("REPO_EMAIL")
+	g := repo.NewGitRepo(sshKeyPath, repositoryUser, repositoryEmail)
 
 	if *clone {
-		g.Clone(repo, "bin/repo", "main", true, false)
+		g.Clone(repository, "bin/repo", "main", true, false)
 	} else if *push {
 		g.ResetToRemoteHead("bin/repo")
 		g.PullLocalRepo("bin/repo")
