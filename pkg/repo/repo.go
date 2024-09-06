@@ -1,26 +1,30 @@
 package repo
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/nice-pink/goutil/pkg/log"
 )
 
-type GitRepo struct {
+type RepoHandle struct {
 	userName   string
 	userEmail  string
 	sshKeyPath string
+	repo       *git.Repository
 }
 
-func NewGitRepo(sshKeyPath string, userName string, userEmail string) *GitRepo {
-	return &GitRepo{
+func NewRepoHandle(sshKeyPath string, userName string, userEmail string) *RepoHandle {
+	return &RepoHandle{
 		userName:   userName,
 		userEmail:  userEmail,
 		sshKeyPath: sshKeyPath,
@@ -35,7 +39,7 @@ func NewGitRepo(sshKeyPath string, userName string, userEmail string) *GitRepo {
 // - CommitPushLocalRepo()
 
 // Clone
-func (g *GitRepo) Clone(url string, dest string, branch string, shallow bool, repoSubfolder bool) error {
+func (g *RepoHandle) Clone(url string, dest string, branch string, shallow bool, repoSubfolder bool) error {
 	// set clone options
 	cloneOpt := &git.CloneOptions{
 		URL:               url,
@@ -67,14 +71,16 @@ func (g *GitRepo) Clone(url string, dest string, branch string, shallow bool, re
 		path := strings.Split(url, "/")
 		dest = filepath.Join(dest, path[len(path)-1])
 	}
-	r, err := git.PlainClone(dest, false, cloneOpt)
+
+	var err error
+	g.repo, err = git.PlainClone(dest, false, cloneOpt)
 	if err != nil {
 		log.Err(err, "clone")
 		return err
 	}
 
 	// ... retrieving the branch being pointed by HEAD
-	_, err = r.Head()
+	_, err = g.repo.Head()
 	if err != nil {
 		log.Err(err)
 	}
@@ -82,14 +88,15 @@ func (g *GitRepo) Clone(url string, dest string, branch string, shallow bool, re
 }
 
 // Pull repo
-func (g *GitRepo) PullLocalRepo(path string) error {
-	repo, err := git.PlainOpen(path)
+func (g *RepoHandle) PullLocalRepo(path string) error {
+	var err error
+	g.repo, err = git.PlainOpen(path)
 	if err != nil {
 		log.Err(err, "open")
 		return err
 	}
 
-	workDir, err := repo.Worktree()
+	workDir, err := g.repo.Worktree()
 	if err != nil {
 		log.Err(err, "worktree")
 		return err
@@ -119,7 +126,7 @@ func (g *GitRepo) PullLocalRepo(path string) error {
 	}
 
 	// Fetch remote
-	repo.Fetch(fetchOpt)
+	g.repo.Fetch(fetchOpt)
 
 	err = workDir.Pull(pullOpt)
 	if err == git.NoErrAlreadyUpToDate {
@@ -143,16 +150,17 @@ func (g *GitRepo) PullLocalRepo(path string) error {
 }
 
 // Pull, commit and push repo.
-func (g *GitRepo) CommitPushLocalRepo(path string, message string, verbose bool) error {
+func (g *RepoHandle) CommitPushLocalRepo(path string, message string, verbose bool) error {
 	// Open folder as git repo
-	repo, err := git.PlainOpen(path)
+	var err error
+	g.repo, err = git.PlainOpen(path)
 	if err != nil {
 		log.Err(err, "open")
 		return err
 	}
 
 	// Get worktree
-	workDir, err := repo.Worktree()
+	workDir, err := g.repo.Worktree()
 	if err != nil {
 		log.Err(err, "worktree")
 		return err
@@ -213,7 +221,7 @@ func (g *GitRepo) CommitPushLocalRepo(path string, message string, verbose bool)
 	}
 
 	// Print commit object
-	obj, err := repo.CommitObject(commit)
+	obj, err := g.repo.CommitObject(commit)
 	if err != nil {
 		log.Err(err, "commit object")
 		return err
@@ -233,7 +241,7 @@ func (g *GitRepo) CommitPushLocalRepo(path string, message string, verbose bool)
 	}
 
 	// Push
-	err = repo.Push(pushOpt)
+	err = g.repo.Push(pushOpt)
 	if err != nil {
 		log.Err(err, "push")
 		return err
@@ -245,7 +253,7 @@ func (g *GitRepo) CommitPushLocalRepo(path string, message string, verbose bool)
 }
 
 // Reset local repo to origin/main HEAD and clean unstaged files.
-func (g *GitRepo) ResetToRemoteHead(path string) error {
+func (g *RepoHandle) ResetToRemoteHead(path string) error {
 	// Open key file for auth
 	auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
 	if err != nil {
@@ -253,21 +261,21 @@ func (g *GitRepo) ResetToRemoteHead(path string) error {
 	}
 
 	// Open folder as git repo
-	repo, err := git.PlainOpen(path)
+	g.repo, err = git.PlainOpen(path)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
 	// Get worktree
-	workDir, err := repo.Worktree()
+	workDir, err := g.repo.Worktree()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
 	// Fetch remote
-	err = repo.Fetch(&git.FetchOptions{
+	err = g.repo.Fetch(&git.FetchOptions{
 		Auth: auth,
 	})
 	if err != nil {
@@ -275,7 +283,7 @@ func (g *GitRepo) ResetToRemoteHead(path string) error {
 	}
 
 	// Get remote head
-	remoteRef, err := repo.Reference(plumbing.Main, true)
+	remoteRef, err := g.repo.Reference(plumbing.Main, true)
 	if err != nil {
 		fmt.Print("Could not get remote head.")
 		return err
@@ -291,6 +299,120 @@ func (g *GitRepo) ResetToRemoteHead(path string) error {
 	err = workDir.Clean(&git.CleanOptions{})
 	if err != nil {
 		fmt.Println(err)
+	}
+
+	return nil
+}
+
+// tag
+
+func (g *RepoHandle) TagRepo(tag, msg string, push bool) error {
+	if g.repo == nil {
+		fmt.Println("No repo")
+		return errors.New("no repo")
+	}
+
+	created, err := g.setTag(tag, msg)
+	if err != nil {
+		fmt.Println("create tag error")
+		fmt.Println(err)
+		return err
+	}
+
+	if !push || !created {
+		return nil
+	}
+
+	err = g.PushTags()
+	if err != nil {
+		fmt.Println("push tag error")
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func (g *RepoHandle) TagExists(tag string) bool {
+	tagFoundErr := "tag was found"
+	// Info("git show-ref --tag")
+	tags, err := g.repo.TagObjects()
+	if err != nil {
+		fmt.Println("get tags error")
+		fmt.Println(err)
+		return false
+	}
+	res := false
+	err = tags.ForEach(func(t *object.Tag) error {
+		if t.Name == tag {
+			res = true
+			return fmt.Errorf(tagFoundErr)
+		}
+		return nil
+	})
+	if err != nil && err.Error() != tagFoundErr {
+		fmt.Println("iterate tags error")
+		fmt.Println(err)
+		return false
+	}
+	return res
+}
+
+func (g *RepoHandle) setTag(tag, msg string) (bool, error) {
+	if g.TagExists(tag) {
+		fmt.Println("tag", tag, "already exists")
+		return false, nil
+	}
+	fmt.Println("Set tag", tag)
+	h, err := g.repo.Head()
+	if err != nil {
+		fmt.Println("get HEAD error")
+		fmt.Println(err)
+		return false, err
+	}
+	// Info("git tag -a %s %s -m \"%s\"", tag, h.Hash(), tag)
+	_, err = g.repo.CreateTag(tag, h.Hash(), &git.CreateTagOptions{
+		Message: msg,
+	})
+
+	if err != nil {
+		fmt.Println("create tag error")
+		fmt.Println(err)
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (g *RepoHandle) PushTags() error {
+
+	po := &git.PushOptions{
+		RemoteName: "origin",
+		Progress:   os.Stdout,
+		RefSpecs:   []config.RefSpec{config.RefSpec("refs/tags/*:refs/tags/*")},
+	}
+
+	// setup ssh auth
+	if g.sshKeyPath != "" {
+		auth, err := ssh.NewPublicKeysFromFile("git", g.sshKeyPath, "")
+		if err != nil {
+			log.Err(err, "key")
+			return err
+		}
+		po.Auth = auth
+	}
+
+	// Info("git push --tags")
+	err := g.repo.Push(po)
+
+	if err != nil {
+		if err == git.NoErrAlreadyUpToDate {
+			fmt.Println("origin remote was up to date, no push done")
+			return nil
+		}
+		fmt.Println("push to remote origin error")
+		fmt.Println(err)
+		return err
 	}
 
 	return nil
