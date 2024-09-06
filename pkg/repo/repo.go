@@ -228,6 +228,17 @@ func (g *RepoHandle) CommitPushLocalRepo(path string, message string, verbose bo
 	}
 	fmt.Println(obj)
 
+	err = g.Push()
+	if err != nil {
+		return err
+	}
+
+	// Success!
+	fmt.Println("Success!")
+	return nil
+}
+
+func (g *RepoHandle) Push() error {
 	pushOpt := &git.PushOptions{}
 
 	// setup ssh auth
@@ -241,15 +252,11 @@ func (g *RepoHandle) CommitPushLocalRepo(path string, message string, verbose bo
 	}
 
 	// Push
-	err = g.repo.Push(pushOpt)
+	err := g.repo.Push(pushOpt)
 	if err != nil {
 		log.Err(err, "push")
-		return err
 	}
-
-	// Success!
-	fmt.Println("Success!")
-	return nil
+	return err
 }
 
 // Reset local repo to origin/main HEAD and clean unstaged files.
