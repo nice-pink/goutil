@@ -38,6 +38,18 @@ func NewRepoHandle(sshKeyPath string, userName string, userEmail string) *RepoHa
 // - Do your changes to the repo
 // - CommitPushLocalRepo()
 
+// open
+
+func (g *RepoHandle) Open(path string) error {
+	var err error
+	g.repo, err = git.PlainOpen(path)
+	if err != nil {
+		log.Err(err, "open")
+		return err
+	}
+	return nil
+}
+
 // Clone
 func (g *RepoHandle) Clone(url string, dest string, branch string, shallow bool, repoSubfolder bool) error {
 	// set clone options
