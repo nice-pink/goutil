@@ -309,52 +309,62 @@ func CopyFile(source string, dest string, printError bool) (err error) {
 
 // replace
 
-func ReplaceInFile(path string, needle string, replacement string, printError bool) (err error) {
+func ReplaceInFile(path string, needle string, replacement string, printError bool) (replaced bool, err error) {
 	// Replace string in file.
 	read, err := os.ReadFile(path)
 	if err != nil {
 		if printError {
 			fmt.Println(err)
 		}
-		return err
+		return false, err
 	}
 
-	newContents := strings.Replace(string(read), needle, replacement, -1)
+	newContent := strings.Replace(string(read), needle, replacement, -1)
 
+	eq := bytes.Equal(read, []byte(newContent))
+	if !eq {
+		return false, nil
+	}
 	// fmt.Println(newContents)
 
-	err = os.WriteFile(path, []byte(newContents), 0)
-	if err != nil && printError == true {
+	err = os.WriteFile(path, []byte(newContent), 0)
+	if err != nil && printError {
 		fmt.Println(err)
 	}
-	return err
+	return false, err
 }
 
-func ReplaceInAllFiles(folder string, recursive bool, needle string, replacement string) (err error) {
+func ReplaceInAllFiles(folder string, recursive bool, needle string, replacement string) (replaced bool, err error) {
 	// Replace string in all files in folder.
 
 	// check if folder exists
 	if !DirExists(folder) {
-		err := errors.New("Folder does not exist!")
+		err := errors.New("folder does not exist")
 		fmt.Println(err)
-		return err
+		return false, err
 	}
 
 	// iterate over items in folder
-	dir, _ := os.Open(folder)
-	objects, err := dir.Readdir(-1)
+	objects, err := os.ReadDir(folder)
+	if err != nil {
+		fmt.Println(err)
+		return false, err
+	}
 
 	for _, object := range objects {
 		filepath := folder + "/" + object.Name()
 		if object.IsDir() {
 			// Replace string in sub sub-dirs
-			err = ReplaceInAllFiles(filepath, recursive, needle, replacement)
+			_, err = ReplaceInAllFiles(filepath, recursive, needle, replacement)
 			if err != nil {
 				fmt.Println(err)
 			}
 		} else {
 			// Replace string in file.
-			_ = ReplaceInFile(filepath, needle, replacement, true)
+			r, _ := ReplaceInFile(filepath, needle, replacement, true)
+			if r {
+				replaced = true
+			}
 		}
 	}
 	return
@@ -404,14 +414,13 @@ func GetAllRegexInFile(path string, pattern string, replacement string, printErr
 func GetRegexInAllFiles(folder string, recursive bool, pattern string, replacement string, fileExtensions []string) ([]string, error) {
 	// check if folder exists
 	if !DirExists(folder) {
-		err := errors.New("Folder does not exist!")
+		err := errors.New("folder does not exist")
 		fmt.Println(err)
 		return nil, err
 	}
 
 	// iterate over items in folder
-	dir, _ := os.Open(folder)
-	objects, err := dir.Readdir(-1)
+	objects, err := os.ReadDir(folder)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -443,7 +452,7 @@ func GetRegexInAllFiles(folder string, recursive bool, pattern string, replaceme
 	return values, nil
 }
 
-func ReplaceRegexInFile(path string, pattern string, replacement string, printError bool) (err error) {
+func ReplaceRegexInFile(path string, pattern string, replacement string, printError bool) (replaced bool, err error) {
 	// Replace string in file based on regex.
 
 	read, err := os.ReadFile(path)
@@ -451,45 +460,56 @@ func ReplaceRegexInFile(path string, pattern string, replacement string, printEr
 		if printError {
 			fmt.Println(err)
 		}
-		return err
+		return false, err
 	}
 
 	newContent := ReplaceRegex(string(read), pattern, replacement)
 
+	eq := bytes.Equal(read, []byte(newContent))
+	if !eq {
+		return false, nil
+	}
+
 	err = os.WriteFile(path, []byte(newContent), 0)
-	if err != nil && printError == true {
+	if err != nil && printError {
 		fmt.Println(err)
 	}
-	return err
+	return true, err
 }
 
-func ReplaceRegexInAllFiles(folder string, recursive bool, pattern string, replacement string) (err error) {
+func ReplaceRegexInAllFiles(folder string, recursive bool, pattern string, replacement string) (replaced bool, err error) {
 	// Replace string in all files in folder based on regex.
 
 	// check if folder exists
 	if !DirExists(folder) {
-		err := errors.New("Folder does not exist!")
+		err := errors.New("folder does not exist")
 		fmt.Println(err)
-		return err
+		return false, err
 	}
 
 	// iterate over items in folder
-	dir, _ := os.Open(folder)
-	objects, err := dir.Readdir(-1)
+	objects, err := os.ReadDir(folder)
+	if err != nil {
+		fmt.Println(err)
+		return false, err
+	}
 
 	for _, object := range objects {
 		filepath := folder + "/" + object.Name()
 		if object.IsDir() {
 			// Replace in sub sub-dirs
-			err = ReplaceRegexInAllFiles(filepath, recursive, pattern, replacement)
+			_, err = ReplaceRegexInAllFiles(filepath, recursive, pattern, replacement)
 			if err != nil {
 				fmt.Println(err)
 			}
 		} else {
-			_ = ReplaceRegexInFile(filepath, pattern, replacement, true)
+			r, _ := ReplaceRegexInFile(filepath, pattern, replacement, true)
+			if r {
+				replaced = true
+			}
 		}
 	}
-	return
+	return replaced, nil
 }
 
 // find
@@ -596,13 +616,13 @@ func CopyDir(source string, dest string, printError bool, failIfExists bool) (er
 
 	// is source directory
 	if !sourceInfo.IsDir() {
-		err := errors.New("Source is not a dir! " + source)
+		err := errors.New("source is not a dir: " + source)
 		panic(err)
 	}
 
 	// check if dest already exists
 	if DirExists(dest) {
-		err := errors.New("Dest already exists!")
+		err := errors.New("dest already exists")
 		fmt.Println(err)
 		if failIfExists {
 			return err
@@ -618,8 +638,7 @@ func CopyDir(source string, dest string, printError bool, failIfExists bool) (er
 	}
 
 	// iterate over items in folder
-	dir, _ := os.Open(source)
-	objects, err := dir.Readdir(-1)
+	objects, err := os.ReadDir(source)
 
 	for _, object := range objects {
 		sourceFile := source + "/" + object.Name()
