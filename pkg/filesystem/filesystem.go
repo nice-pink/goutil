@@ -322,7 +322,7 @@ func ReplaceInFile(path string, needle string, replacement string, printError bo
 	newContent := strings.Replace(string(read), needle, replacement, -1)
 
 	eq := bytes.Equal(read, []byte(newContent))
-	if !eq {
+	if eq {
 		return false, nil
 	}
 	// fmt.Println(newContents)
@@ -466,7 +466,7 @@ func ReplaceRegexInFile(path string, pattern string, replacement string, printEr
 	newContent := ReplaceRegex(string(read), pattern, replacement)
 
 	eq := bytes.Equal(read, []byte(newContent))
-	if !eq {
+	if eq {
 		return false, nil
 	}
 
