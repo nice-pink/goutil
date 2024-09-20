@@ -8,10 +8,6 @@ import (
 	"time"
 )
 
-const (
-	SEVERITY_KEY = "Severity"
-)
-
 type ConnProtocol int
 
 const (
@@ -26,23 +22,34 @@ func getNetwork(protocol ConnProtocol) string {
 	return "tcp"
 }
 
+type Keys struct {
+	Timestamp string
+	Message   string
+	Severity  string
+}
+
 type RLog struct {
-	Address      string
-	Protocol     ConnProtocol
-	Timeout      time.Duration
-	TimestampKey string
-	MessageKey   string
-	CommonData   map[string]interface{}
+	Address    string
+	Protocol   ConnProtocol
+	Timeout    time.Duration
+	Keys       Keys
+	CommonData map[string]interface{}
 }
 
 func NewRLog(host string, port int, protocol ConnProtocol, timeout time.Duration) *RLog {
 	address := host + ":" + strconv.Itoa(port)
+
+	keys := Keys{
+		Message:   "message",
+		Timestamp: "timestamp",
+		Severity:  "severity",
+	}
+
 	rlog := &RLog{
-		Address:      address,
-		Protocol:     protocol,
-		Timeout:      timeout,
-		MessageKey:   "message",
-		TimestampKey: "timestamp",
+		Address:  address,
+		Protocol: protocol,
+		Timeout:  timeout,
+		Keys:     keys,
 	}
 	return rlog
 }
@@ -51,43 +58,46 @@ func (l *RLog) UpdateCommonData(data map[string]interface{}) {
 	l.CommonData = data
 }
 
-func (l *RLog) UpdateKeys(message, timestamp string) {
+func (l *RLog) UpdateKeys(message, severity, timestamp string) {
 	if message != "" {
-		l.MessageKey = message
+		l.Keys.Message = message
+	}
+	if severity != "" {
+		l.Keys.Severity = severity
 	}
 	if timestamp != "" {
-		l.TimestampKey = timestamp
+		l.Keys.Timestamp = timestamp
 	}
 }
 
 func (l *RLog) Verbose(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "VERBOSE")
-	Verbose(data[l.MessageKey])
+	Verbose(data[l.Keys.Message])
 }
 
 func (l *RLog) Info(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "INFO")
-	Info(data[l.MessageKey])
+	Info(data[l.Keys.Message])
 }
 
 func (l *RLog) Debug(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "DEBUG")
-	Debug(data[l.MessageKey])
+	Debug(data[l.Keys.Message])
 }
 
 func (l *RLog) Warn(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "WARN")
-	Warn(data[l.MessageKey])
+	Warn(data[l.Keys.Message])
 }
 
 func (l *RLog) Error(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "ERROR")
-	Error(data[l.MessageKey])
+	Error(data[l.Keys.Message])
 }
 
 func (l *RLog) Critical(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "CRITICAL")
-	Critical(data[l.MessageKey])
+	Critical(data[l.Keys.Message])
 }
 
 func (l *RLog) LogString(msg string) {
@@ -117,9 +127,9 @@ func (l *RLog) connect() net.Conn {
 func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, severity string) bool {
 	// create map
 	data := map[string]interface{}{}
-	data[SEVERITY_KEY] = severity
-	data[l.TimestampKey] = time.Now().Format(time.DateTime)
-	data[l.MessageKey] = msg
+	data[l.Keys.Severity] = severity
+	data[l.Keys.Timestamp] = time.Now().Format(time.DateTime)
+	data[l.Keys.Message] = msg
 
 	// copy additional
 	maps.Copy(data, add)
