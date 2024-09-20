@@ -86,6 +86,11 @@ func Critical(logs ...any) {
 
 // special
 
+func Plain(logs ...any) {
+	params := append([]any{time.Now().Format(time.DateTime) + ":"}, logs...)
+	fmt.Println(params...)
+}
+
 func Notify(logs ...any) {
 	var params []any
 	if strings.ToLower(os.Getenv("LOG_IGNORE_COLOR")) == "true" {

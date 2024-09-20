@@ -2,6 +2,7 @@ package log
 
 import (
 	"encoding/json"
+	"maps"
 	"net"
 	"strconv"
 	"time"
@@ -28,13 +29,13 @@ func getNetwork(protocol ConnProtocol) string {
 type RLog struct {
 	Address      string
 	Protocol     ConnProtocol
-	Timeout      time.Time
+	Timeout      time.Duration
 	TimestampKey string
 	MessageKey   string
 	CommonData   map[string]interface{}
 }
 
-func NewRLog(host string, port int, protocol ConnProtocol, timeout time.Time) *RLog {
+func NewRLog(host string, port int, protocol ConnProtocol, timeout time.Duration) *RLog {
 	address := host + ":" + strconv.Itoa(port)
 	rlog := &RLog{
 		Address:      address,
@@ -59,38 +60,39 @@ func (l *RLog) UpdateKeys(message, timestamp string) {
 	}
 }
 
-func (l *RLog) Verbose(data map[string]interface{}) {
-	l.sendJsonWithSeverity(data, "VERBOSE")
-	log.Verbose(data[l.MessageKey])
+func (l *RLog) Verbose(msg string, data map[string]interface{}) {
+	l.sendJsonWithSeverity(msg, data, "VERBOSE")
+	Verbose(data[l.MessageKey])
 }
 
-func (l *RLog) Info(data map[string]interface{}) {
-	l.sendJsonWithSeverity(data, "INFO")
-	log.Info(data[l.MessageKey])
+func (l *RLog) Info(msg string, data map[string]interface{}) {
+	l.sendJsonWithSeverity(msg, data, "INFO")
+	Info(data[l.MessageKey])
 }
 
-func (l *RLog) Debug(data map[string]interface{}) {
-	l.sendJsonWithSeverity(data, "DEBUG")
-	log.Debug(data[l.MessageKey])
+func (l *RLog) Debug(msg string, data map[string]interface{}) {
+	l.sendJsonWithSeverity(msg, data, "DEBUG")
+	Debug(data[l.MessageKey])
 }
 
-func (l *RLog) Warn(data map[string]interface{}) {
-	l.sendJsonWithSeverity(data, "WARN")
-	log.Warn(data[l.MessageKey])
+func (l *RLog) Warn(msg string, data map[string]interface{}) {
+	l.sendJsonWithSeverity(msg, data, "WARN")
+	Warn(data[l.MessageKey])
 }
 
-func (l *RLog) Error(data map[string]interface{}) {
-	l.sendJsonWithSeverity(data, "ERROR")
-	log.Error(data[l.MessageKey])
+func (l *RLog) Error(msg string, data map[string]interface{}) {
+	l.sendJsonWithSeverity(msg, data, "ERROR")
+	Error(data[l.MessageKey])
 }
 
-func (l *RLog) Critical(data map[string]interface{}) {
-	l.sendJsonWithSeverity(data, "CRITICAL")
-	log.Critical(data[l.MessageKey])
+func (l *RLog) Critical(msg string, data map[string]interface{}) {
+	l.sendJsonWithSeverity(msg, data, "CRITICAL")
+	Critical(data[l.MessageKey])
 }
 
 func (l *RLog) LogString(msg string) {
 	l.sendString(msg)
+	Plain(msg)
 }
 
 // private
@@ -104,18 +106,26 @@ func (l *RLog) connect() net.Conn {
 	}
 
 	// update deadlines
-	conn.SetDeadline(l.Timeout)
-	conn.SetWriteDeadline(l.Timeout)
-	conn.SetReadDeadline(l.Timeout)
+	deadline := time.Now().Add(l.Timeout)
+	conn.SetDeadline(deadline)
+	conn.SetWriteDeadline(deadline)
+	conn.SetReadDeadline(deadline)
 
 	return conn
 }
 
-func (l *RLog) sendJsonWithSeverity(data map[string]interface{}, severity string) bool {
+func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, severity string) bool {
+	// create map
+	data := map[string]interface{}{}
 	data[SEVERITY_KEY] = severity
-	success := l.sendJson(data)
-	delete(data, SEVERITY_KEY)
-	return success
+	data[l.TimestampKey] = time.Now().Format(time.DateTime)
+	data[l.MessageKey] = msg
+
+	// copy additional
+	maps.Copy(data, add)
+	maps.Copy(data, l.CommonData)
+
+	return l.sendJson(data)
 }
 
 func (l *RLog) sendJson(data map[string]interface{}) bool {
