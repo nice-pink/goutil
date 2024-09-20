@@ -5,9 +5,6 @@ import (
 	"net"
 	"strconv"
 	"time"
-
-	"github.com/google/martian/v3/log"
-	"github.com/nice-pink/goutil/pkg/log"
 )
 
 const (
