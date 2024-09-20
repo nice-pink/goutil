@@ -2,6 +2,7 @@ package log
 
 import (
 	"encoding/json"
+	"fmt"
 	"maps"
 	"net"
 	"strconv"
@@ -74,7 +75,7 @@ func (l *RLog) UpdateKeys(message, severity, timestamp string) {
 	}
 }
 
-func (l *RLog) Verbose(msg string) {
+func (l *RLog) Verbose(logs ...any) {
 	l.sendJsonWithSeverity(msg, nil, "VERBOSE")
 	Verbose(msg)
 }
@@ -84,7 +85,8 @@ func (l *RLog) VerboseD(msg string, data map[string]interface{}) {
 	Verbose(msg)
 }
 
-func (l *RLog) Info(msg string) {
+func (l *RLog) Info(logs ...any) {
+	msg := fmt.Sprint(logs...)
 	l.sendJsonWithSeverity(msg, nil, "INFO")
 	Info(msg)
 }
@@ -94,7 +96,8 @@ func (l *RLog) InfoD(msg string, data map[string]interface{}) {
 	Info(msg)
 }
 
-func (l *RLog) Debug(msg string) {
+func (l *RLog) Debug(logs ...any) {
+	msg := fmt.Sprint(logs...)
 	l.sendJsonWithSeverity(msg, nil, "DEBUG")
 	Debug(msg)
 }
@@ -104,7 +107,8 @@ func (l *RLog) DebugD(msg string, data map[string]interface{}) {
 	Debug(msg)
 }
 
-func (l *RLog) Warn(msg string) {
+func (l *RLog) Warn(logs ...any) {
+	msg := fmt.Sprint(logs...)
 	l.sendJsonWithSeverity(msg, nil, "WARN")
 	Warn(msg)
 }
@@ -114,7 +118,8 @@ func (l *RLog) WarnD(msg string, data map[string]interface{}) {
 	Warn(msg)
 }
 
-func (l *RLog) Error(msg string) {
+func (l *RLog) Error(logs ...any) {
+	msg := fmt.Sprint(logs...)
 	l.sendJsonWithSeverity(msg, nil, "ERROR")
 	Error(msg)
 }
@@ -124,7 +129,8 @@ func (l *RLog) ErrorD(msg string, data map[string]interface{}) {
 	Error(msg)
 }
 
-func (l *RLog) Critical(msg string) {
+func (l *RLog) Critical(logs ...any) {
+	msg := fmt.Sprint(logs...)
 	l.sendJsonWithSeverity(msg, nil, "CRITICAL")
 	Critical(msg)
 }
@@ -134,7 +140,8 @@ func (l *RLog) CriticalD(msg string, data map[string]interface{}) {
 	Critical(msg)
 }
 
-func (l *RLog) LogString(msg string) {
+func (l *RLog) LogString(logs ...any) {
+	msg := fmt.Sprint(logs...)
 	l.sendString(msg)
 	Plain(msg)
 }
