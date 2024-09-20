@@ -80,8 +80,7 @@ func (l *RLog) UpdateKeys(message, severity, timestamp string) {
 }
 
 func (l *RLog) Verbose(logs ...any) {
-	msg := fmt.Sprintln(logs...)
-	msg = strings.TrimSuffix(msg, "\n")
+	msg := getMsg(logs...)
 	Verbose(msg)
 	l.sendJsonWithSeverity(msg, nil, "VERBOSE")
 }
@@ -92,8 +91,7 @@ func (l *RLog) VerboseD(msg string, data map[string]interface{}) {
 }
 
 func (l *RLog) Info(logs ...any) {
-	msg := fmt.Sprintln(logs...)
-	msg = strings.TrimSuffix(msg, "\n")
+	msg := getMsg(logs...)
 	Info(msg)
 	l.sendJsonWithSeverity(msg, nil, "INFO")
 }
@@ -104,7 +102,7 @@ func (l *RLog) InfoD(msg string, data map[string]interface{}) {
 }
 
 func (l *RLog) Debug(logs ...any) {
-	msg := fmt.Sprintln(logs...)
+	msg := getMsg(logs...)
 	Debug(msg)
 	l.sendJsonWithSeverity(msg, nil, "DEBUG")
 }
@@ -115,7 +113,7 @@ func (l *RLog) DebugD(msg string, data map[string]interface{}) {
 }
 
 func (l *RLog) Warn(logs ...any) {
-	msg := fmt.Sprintln(logs...)
+	msg := getMsg(logs...)
 	Warn(msg)
 	l.sendJsonWithSeverity(msg, nil, "WARN")
 }
@@ -126,7 +124,7 @@ func (l *RLog) WarnD(msg string, data map[string]interface{}) {
 }
 
 func (l *RLog) Error(logs ...any) {
-	msg := fmt.Sprintln(logs...)
+	msg := getMsg(logs...)
 	Error(msg)
 	l.sendJsonWithSeverity(msg, nil, "ERROR")
 }
@@ -137,7 +135,7 @@ func (l *RLog) ErrorD(msg string, data map[string]interface{}) {
 }
 
 func (l *RLog) Critical(logs ...any) {
-	msg := fmt.Sprintln(logs...)
+	msg := getMsg(logs...)
 	Critical(msg)
 	l.sendJsonWithSeverity(msg, nil, "CRITICAL")
 }
@@ -148,7 +146,7 @@ func (l *RLog) CriticalD(msg string, data map[string]interface{}) {
 }
 
 func (l *RLog) LogString(logs ...any) {
-	msg := fmt.Sprintln(logs...)
+	msg := getMsg(logs...)
 	l.sendString(msg)
 	Plain(msg)
 }
@@ -236,4 +234,9 @@ func (l *RLog) sendString(data string) bool {
 		return false
 	}
 	return true
+}
+
+func getMsg(logs ...any) string {
+	msg := fmt.Sprintln(logs...)
+	return strings.TrimSuffix(msg, "\n")
 }
