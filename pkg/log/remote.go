@@ -76,6 +76,7 @@ func (l *RLog) UpdateKeys(message, severity, timestamp string) {
 }
 
 func (l *RLog) Verbose(logs ...any) {
+	msg := fmt.Sprint(logs...)
 	l.sendJsonWithSeverity(msg, nil, "VERBOSE")
 	Verbose(msg)
 }
