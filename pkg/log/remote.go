@@ -42,7 +42,10 @@ func NewRLog(host string, port int) *RLog {
 }
 
 func NewRLogExt(host string, port int, protocol ConnProtocol, timeout time.Duration) *RLog {
-	address := host + ":" + strconv.Itoa(port)
+	address := ""
+	if host != "" && port != 0 {
+		address = host + ":" + strconv.Itoa(port)
+	}
 
 	keys := Keys{
 		Message:   "message",
