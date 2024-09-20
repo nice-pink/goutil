@@ -24,6 +24,11 @@ func Newline() {
 	fmt.Println()
 }
 
+func Verbose(logs ...any) {
+	params := append([]any{time.Now().Format(time.DateTime) + " VERBOSE:"}, logs...)
+	fmt.Println(params...)
+}
+
 func Debug(logs ...any) {
 	params := append([]any{time.Now().Format(time.DateTime) + " DEBUG:"}, logs...)
 	fmt.Println(params...)
