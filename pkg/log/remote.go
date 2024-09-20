@@ -156,7 +156,7 @@ func (l *RLog) connect() net.Conn {
 	network := getNetwork(l.Protocol)
 	conn, err := net.Dial(network, l.Address)
 	if err != nil {
-		Err(err, "dial to network", network, "address", l.Address)
+		// Err(err, "dial to network", network, "address", l.Address)
 		return nil
 	}
 
