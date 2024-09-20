@@ -6,6 +6,7 @@ import (
 	"maps"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -80,6 +81,7 @@ func (l *RLog) UpdateKeys(message, severity, timestamp string) {
 
 func (l *RLog) Verbose(logs ...any) {
 	msg := fmt.Sprintln(logs...)
+	msg = strings.TrimSuffix(msg, "\n")
 	Verbose(msg)
 	l.sendJsonWithSeverity(msg, nil, "VERBOSE")
 }
@@ -91,6 +93,7 @@ func (l *RLog) VerboseD(msg string, data map[string]interface{}) {
 
 func (l *RLog) Info(logs ...any) {
 	msg := fmt.Sprintln(logs...)
+	msg = strings.TrimSuffix(msg, "\n")
 	Info(msg)
 	l.sendJsonWithSeverity(msg, nil, "INFO")
 }
