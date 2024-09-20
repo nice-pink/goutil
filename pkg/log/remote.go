@@ -85,7 +85,8 @@ func (l *RLog) Verbose(logs ...any) {
 	l.sendJsonWithSeverity(msg, nil, "VERBOSE")
 }
 
-func (l *RLog) VerboseD(msg string, data map[string]interface{}) {
+func (l *RLog) VerboseD(data map[string]interface{}, logs ...any) {
+	msg := getMsg(logs...)
 	Verbose(msg)
 	l.sendJsonWithSeverity(msg, data, "VERBOSE")
 }
@@ -96,7 +97,8 @@ func (l *RLog) Info(logs ...any) {
 	l.sendJsonWithSeverity(msg, nil, "INFO")
 }
 
-func (l *RLog) InfoD(msg string, data map[string]interface{}) {
+func (l *RLog) InfoD(data map[string]interface{}, logs ...any) {
+	msg := getMsg(logs...)
 	Info(msg)
 	l.sendJsonWithSeverity(msg, data, "INFO")
 }
@@ -107,7 +109,8 @@ func (l *RLog) Debug(logs ...any) {
 	l.sendJsonWithSeverity(msg, nil, "DEBUG")
 }
 
-func (l *RLog) DebugD(msg string, data map[string]interface{}) {
+func (l *RLog) DebugD(data map[string]interface{}, logs ...any) {
+	msg := getMsg(logs...)
 	Debug(msg)
 	l.sendJsonWithSeverity(msg, data, "DEBUG")
 }
@@ -118,7 +121,8 @@ func (l *RLog) Warn(logs ...any) {
 	l.sendJsonWithSeverity(msg, nil, "WARN")
 }
 
-func (l *RLog) WarnD(msg string, data map[string]interface{}) {
+func (l *RLog) WarnD(data map[string]interface{}, logs ...any) {
+	msg := getMsg(logs...)
 	Warn(msg)
 	l.sendJsonWithSeverity(msg, data, "WARN")
 }
@@ -129,7 +133,8 @@ func (l *RLog) Error(logs ...any) {
 	l.sendJsonWithSeverity(msg, nil, "ERROR")
 }
 
-func (l *RLog) ErrorD(msg string, data map[string]interface{}) {
+func (l *RLog) ErrorD(data map[string]interface{}, logs ...any) {
+	msg := getMsg(logs...)
 	Error(msg)
 	l.sendJsonWithSeverity(msg, data, "ERROR")
 }
@@ -140,7 +145,8 @@ func (l *RLog) Critical(logs ...any) {
 	l.sendJsonWithSeverity(msg, nil, "CRITICAL")
 }
 
-func (l *RLog) CriticalD(msg string, data map[string]interface{}) {
+func (l *RLog) CriticalD(data map[string]interface{}, logs ...any) {
+	msg := getMsg(logs...)
 	Critical(msg)
 	l.sendJsonWithSeverity(msg, data, "CRITICAL")
 }
