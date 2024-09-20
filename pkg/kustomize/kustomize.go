@@ -63,5 +63,7 @@ func addItemToKustomization(path string, item string, itemType string, addNewlin
 	} else {
 		replacement = replacement + " " + item
 	}
-	return filesystem.ReplaceInFile(pathKustomization, key, replacement, true)
+
+	_, err := filesystem.ReplaceInFile(pathKustomization, key, replacement, true)
+	return err
 }
