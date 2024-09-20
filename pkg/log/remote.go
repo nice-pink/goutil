@@ -74,34 +74,64 @@ func (l *RLog) UpdateKeys(message, severity, timestamp string) {
 	}
 }
 
-func (l *RLog) Verbose(msg string, data map[string]interface{}) {
+func (l *RLog) Verbose(msg string) {
+	l.sendJsonWithSeverity(msg, nil, "VERBOSE")
+	Verbose(msg)
+}
+
+func (l *RLog) VerboseD(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "VERBOSE")
-	Verbose(data[l.Keys.Message])
+	Verbose(msg)
 }
 
-func (l *RLog) Info(msg string, data map[string]interface{}) {
+func (l *RLog) Info(msg string) {
+	l.sendJsonWithSeverity(msg, nil, "INFO")
+	Info(msg)
+}
+
+func (l *RLog) InfoD(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "INFO")
-	Info(data[l.Keys.Message])
+	Info(msg)
 }
 
-func (l *RLog) Debug(msg string, data map[string]interface{}) {
+func (l *RLog) Debug(msg string) {
+	l.sendJsonWithSeverity(msg, nil, "DEBUG")
+	Debug(msg)
+}
+
+func (l *RLog) DebugD(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "DEBUG")
-	Debug(data[l.Keys.Message])
+	Debug(msg)
 }
 
-func (l *RLog) Warn(msg string, data map[string]interface{}) {
+func (l *RLog) Warn(msg string) {
+	l.sendJsonWithSeverity(msg, nil, "WARN")
+	Warn(msg)
+}
+
+func (l *RLog) WarnD(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "WARN")
-	Warn(data[l.Keys.Message])
+	Warn(msg)
 }
 
-func (l *RLog) Error(msg string, data map[string]interface{}) {
+func (l *RLog) Error(msg string) {
+	l.sendJsonWithSeverity(msg, nil, "ERROR")
+	Error(msg)
+}
+
+func (l *RLog) ErrorD(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "ERROR")
-	Error(data[l.Keys.Message])
+	Error(msg)
 }
 
-func (l *RLog) Critical(msg string, data map[string]interface{}) {
+func (l *RLog) Critical(msg string) {
+	l.sendJsonWithSeverity(msg, nil, "CRITICAL")
+	Critical(msg)
+}
+
+func (l *RLog) CriticalD(msg string, data map[string]interface{}) {
 	l.sendJsonWithSeverity(msg, data, "CRITICAL")
-	Critical(data[l.Keys.Message])
+	Critical(msg)
 }
 
 func (l *RLog) LogString(msg string) {
@@ -140,8 +170,12 @@ func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, seve
 	data[l.Keys.Message] = msg
 
 	// copy additional
-	maps.Copy(data, add)
-	maps.Copy(data, l.CommonData)
+	if add != nil {
+		maps.Copy(data, add)
+	}
+	if l.CommonData != nil {
+		maps.Copy(data, l.CommonData)
+	}
 
 	return l.sendJson(data)
 }
