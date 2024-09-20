@@ -36,7 +36,11 @@ type RLog struct {
 	CommonData map[string]interface{}
 }
 
-func NewRLog(host string, port int, protocol ConnProtocol, timeout time.Duration) *RLog {
+func NewRLog(host string, port int) *RLog {
+	return NewRLogExt(host, port, Tcp, 3)
+}
+
+func NewRLogExt(host string, port int, protocol ConnProtocol, timeout time.Duration) *RLog {
 	address := host + ":" + strconv.Itoa(port)
 
 	keys := Keys{
@@ -125,6 +129,10 @@ func (l *RLog) connect() net.Conn {
 }
 
 func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, severity string) bool {
+	if l.Address == "" {
+		return false
+	}
+
 	// create map
 	data := map[string]interface{}{}
 	data[l.Keys.Severity] = severity
@@ -139,6 +147,10 @@ func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, seve
 }
 
 func (l *RLog) sendJson(data map[string]interface{}) bool {
+	if l.Address == "" {
+		return false
+	}
+
 	conn := l.connect()
 	if conn == nil {
 		return false
@@ -160,6 +172,10 @@ func (l *RLog) sendJson(data map[string]interface{}) bool {
 }
 
 func (l *RLog) sendString(data string) bool {
+	if l.Address == "" {
+		return false
+	}
+
 	conn := l.connect()
 	if conn == nil {
 		return false
