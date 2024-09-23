@@ -168,7 +168,7 @@ func (l *RLog) connect() net.Conn {
 	}
 
 	// update deadlines
-	deadline := time.Now().Add(l.Timeout)
+	deadline := time.Now().Add(l.Timeout * time.Second)
 	conn.SetDeadline(deadline)
 	conn.SetWriteDeadline(deadline)
 	conn.SetReadDeadline(deadline)
