@@ -10,6 +10,40 @@ import (
 	"time"
 )
 
+// log level
+
+type LogLevel int
+
+const (
+	LLVerbose LogLevel = iota
+	LLDebug
+	LLInfo
+	LLWarn
+	LLError
+	LLCritical
+)
+
+func GetLogLevel(level string) LogLevel {
+	if strings.ToLower(level) == "critical" {
+		return LLCritical
+	}
+	if strings.ToLower(level) == "error" {
+		return LLError
+	}
+	if strings.ToLower(level) == "warn" || strings.ToLower(level) == "warning" {
+		return LLWarn
+	}
+	if strings.ToLower(level) == "info" {
+		return LLInfo
+	}
+	if strings.ToLower(level) == "debug" {
+		return LLDebug
+	}
+	return LLVerbose
+}
+
+// connection protocol
+
 type ConnProtocol int
 
 const (
@@ -24,6 +58,8 @@ func getNetwork(protocol ConnProtocol) string {
 	return "tcp"
 }
 
+// common keys
+
 type Keys struct {
 	Timestamp string
 	Message   string
@@ -36,13 +72,15 @@ type RLog struct {
 	Timeout    time.Duration
 	Keys       Keys
 	CommonData map[string]interface{}
+	LogLevel   LogLevel
 }
 
-func NewRLog(host string, port int) *RLog {
-	return NewRLogExt(host, port, Tcp, 3)
+func NewRLog(host string, port int, logLevel string) *RLog {
+
+	return NewRLogExt(host, port, logLevel, Tcp, 3)
 }
 
-func NewRLogExt(host string, port int, protocol ConnProtocol, timeout time.Duration) *RLog {
+func NewRLogExt(host string, port int, logLevel string, protocol ConnProtocol, timeout time.Duration) *RLog {
 	address := ""
 	if host != "" && port != 0 {
 		address = host + ":" + strconv.Itoa(port)
@@ -59,6 +97,7 @@ func NewRLogExt(host string, port int, protocol ConnProtocol, timeout time.Durat
 		Protocol: protocol,
 		Timeout:  timeout,
 		Keys:     keys,
+		LogLevel: GetLogLevel(logLevel),
 	}
 	return rlog
 }
@@ -80,72 +119,108 @@ func (l *RLog) UpdateKeys(message, severity, timestamp string) {
 }
 
 func (l *RLog) Verbose(logs ...any) {
+	if l.LogLevel > LLVerbose {
+		return
+	}
 	msg := getMsg(logs...)
 	Verbose(msg)
 	l.sendJsonWithSeverity(msg, nil, "VERBOSE")
 }
 
 func (l *RLog) VerboseD(data map[string]interface{}, logs ...any) {
+	if l.LogLevel > LLVerbose {
+		return
+	}
 	msg := getMsg(logs...)
 	Verbose(msg)
 	l.sendJsonWithSeverity(msg, data, "VERBOSE")
 }
 
-func (l *RLog) Info(logs ...any) {
-	msg := getMsg(logs...)
-	Info(msg)
-	l.sendJsonWithSeverity(msg, nil, "INFO")
-}
-
-func (l *RLog) InfoD(data map[string]interface{}, logs ...any) {
-	msg := getMsg(logs...)
-	Info(msg)
-	l.sendJsonWithSeverity(msg, data, "INFO")
-}
-
 func (l *RLog) Debug(logs ...any) {
+	if l.LogLevel > LLDebug {
+		return
+	}
 	msg := getMsg(logs...)
 	Debug(msg)
 	l.sendJsonWithSeverity(msg, nil, "DEBUG")
 }
 
 func (l *RLog) DebugD(data map[string]interface{}, logs ...any) {
+	if l.LogLevel > LLDebug {
+		return
+	}
 	msg := getMsg(logs...)
 	Debug(msg)
 	l.sendJsonWithSeverity(msg, data, "DEBUG")
 }
 
+func (l *RLog) Info(logs ...any) {
+	if l.LogLevel > LLInfo {
+		return
+	}
+	msg := getMsg(logs...)
+	Info(msg)
+	l.sendJsonWithSeverity(msg, nil, "INFO")
+}
+
+func (l *RLog) InfoD(data map[string]interface{}, logs ...any) {
+	if l.LogLevel > LLInfo {
+		return
+	}
+	msg := getMsg(logs...)
+	Info(msg)
+	l.sendJsonWithSeverity(msg, data, "INFO")
+}
+
 func (l *RLog) Warn(logs ...any) {
+	if l.LogLevel > LLWarn {
+		return
+	}
 	msg := getMsg(logs...)
 	Warn(msg)
 	l.sendJsonWithSeverity(msg, nil, "WARN")
 }
 
 func (l *RLog) WarnD(data map[string]interface{}, logs ...any) {
+	if l.LogLevel > LLWarn {
+		return
+	}
 	msg := getMsg(logs...)
 	Warn(msg)
 	l.sendJsonWithSeverity(msg, data, "WARN")
 }
 
 func (l *RLog) Error(logs ...any) {
+	if l.LogLevel > LLError {
+		return
+	}
 	msg := getMsg(logs...)
 	Error(msg)
 	l.sendJsonWithSeverity(msg, nil, "ERROR")
 }
 
 func (l *RLog) ErrorD(data map[string]interface{}, logs ...any) {
+	if l.LogLevel > LLError {
+		return
+	}
 	msg := getMsg(logs...)
 	Error(msg)
 	l.sendJsonWithSeverity(msg, data, "ERROR")
 }
 
 func (l *RLog) Critical(logs ...any) {
+	if l.LogLevel > LLCritical {
+		return
+	}
 	msg := getMsg(logs...)
 	Critical(msg)
 	l.sendJsonWithSeverity(msg, nil, "CRITICAL")
 }
 
 func (l *RLog) CriticalD(data map[string]interface{}, logs ...any) {
+	if l.LogLevel > LLCritical {
+		return
+	}
 	msg := getMsg(logs...)
 	Critical(msg)
 	l.sendJsonWithSeverity(msg, data, "CRITICAL")
