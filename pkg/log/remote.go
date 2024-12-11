@@ -147,8 +147,6 @@ func (l *RLog) Debug(logs ...any) {
 	if l.LogLevel > LLDebug {
 		return
 	}
-	now := time.Now().Format(l.TimeFormat)
-	Debug(now)
 
 	msg := getMsg(logs...)
 	Debug(msg)
