@@ -74,14 +74,14 @@ type RLog struct {
 	Keys       Keys
 	CommonData map[string]interface{}
 	LogLevel   LogLevel
+	TimeFormat string
 }
 
-func NewRLog(host string, port int, logLevel string) *RLog {
-
-	return NewRLogExt(host, port, logLevel, Tcp, 3)
+func NewRLog(host string, port int, logLevel, timeFormat string) *RLog {
+	return NewRLogExt(host, port, logLevel, timeFormat, Tcp, 3)
 }
 
-func NewRLogExt(host string, port int, logLevel string, protocol ConnProtocol, timeout time.Duration) *RLog {
+func NewRLogExt(host string, port int, logLevel, timeFormat string, protocol ConnProtocol, timeout time.Duration) *RLog {
 	address := ""
 	if host != "" && port != 0 {
 		address = host + ":" + strconv.Itoa(port)
@@ -93,12 +93,18 @@ func NewRLogExt(host string, port int, logLevel string, protocol ConnProtocol, t
 		Severity:  "severity",
 	}
 
+	tf := timeFormat
+	if tf == "" {
+		tf = time.DateTime
+	}
+
 	rlog := &RLog{
-		Address:  address,
-		Protocol: protocol,
-		Timeout:  timeout,
-		Keys:     keys,
-		LogLevel: GetLogLevel(logLevel),
+		Address:    address,
+		Protocol:   protocol,
+		Timeout:    timeout,
+		Keys:       keys,
+		LogLevel:   GetLogLevel(logLevel),
+		TimeFormat: tf,
 	}
 	return rlog
 }
@@ -141,6 +147,9 @@ func (l *RLog) Debug(logs ...any) {
 	if l.LogLevel > LLDebug {
 		return
 	}
+	now := time.Now().Format(l.TimeFormat)
+	Debug(now)
+
 	msg := getMsg(logs...)
 	Debug(msg)
 	l.sendJsonWithSeverity(msg, nil, "DEBUG")
@@ -260,7 +269,7 @@ func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, seve
 	// create map
 	data := map[string]interface{}{}
 	data[l.Keys.Severity] = severity
-	data[l.Keys.Timestamp] = time.Now().Format(time.DateTime)
+	data[l.Keys.Timestamp] = time.Now().Format(l.TimeFormat)
 	data[l.Keys.Message] = msg
 
 	// copy additional
