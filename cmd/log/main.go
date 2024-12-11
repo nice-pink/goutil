@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"os"
+	"time"
 
 	"github.com/nice-pink/goutil/pkg/log"
 )
@@ -25,7 +25,11 @@ func main() {
 	log.Notify("head log")
 	log.Info()
 
-	rl := log.NewRLog("test", 80, "Debug", "January 1th 2006, 01:04:05.100")
-	os.Setenv("GU_REMOTE_LOG_DEBUG", "true")
-	rl.Debug("test log")
+	timeformat := "2006-01-02T01:04:05.100Z"
+	now := time.Now().Format(timeformat)
+	log.Info(now)
+
+	// rl := log.NewRLog("test", 80, "Debug", "January 1th 2006, 01:04:05.100")
+	// os.Setenv("GU_REMOTE_LOG_DEBUG", "true")
+	// rl.Debug("test log")
 }
