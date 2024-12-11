@@ -75,13 +75,14 @@ type RLog struct {
 	CommonData map[string]interface{}
 	LogLevel   LogLevel
 	TimeFormat string
+	IsUtc      bool
 }
 
-func NewRLog(host string, port int, logLevel, timeFormat string) *RLog {
-	return NewRLogExt(host, port, logLevel, timeFormat, Tcp, 3)
+func NewRLog(host string, port int, logLevel, timeFormat string, isUtc bool) *RLog {
+	return NewRLogExt(host, port, logLevel, timeFormat, isUtc, Tcp, 3)
 }
 
-func NewRLogExt(host string, port int, logLevel, timeFormat string, protocol ConnProtocol, timeout time.Duration) *RLog {
+func NewRLogExt(host string, port int, logLevel, timeFormat string, isUtc bool, protocol ConnProtocol, timeout time.Duration) *RLog {
 	address := ""
 	if host != "" && port != 0 {
 		address = host + ":" + strconv.Itoa(port)
@@ -105,6 +106,7 @@ func NewRLogExt(host string, port int, logLevel, timeFormat string, protocol Con
 		Keys:       keys,
 		LogLevel:   GetLogLevel(logLevel),
 		TimeFormat: tf,
+		IsUtc:      isUtc,
 	}
 	return rlog
 }
@@ -267,8 +269,16 @@ func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, seve
 	// create map
 	data := map[string]interface{}{}
 	data[l.Keys.Severity] = severity
-	data[l.Keys.Timestamp] = time.Now().Format(l.TimeFormat)
 	data[l.Keys.Message] = msg
+
+	// timestamp
+	var ts string
+	if l.IsUtc {
+		ts = time.Now().UTC().Format(l.TimeFormat)
+	} else {
+		ts = time.Now().Format(l.TimeFormat)
+	}
+	data[l.Keys.Timestamp] = ts
 
 	// copy additional
 	if add != nil {

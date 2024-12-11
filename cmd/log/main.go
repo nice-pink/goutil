@@ -26,7 +26,7 @@ func main() {
 	log.Info()
 
 	timeformat := "2006-01-02T01:04:05.100Z"
-	now := time.Now().Format(timeformat)
+	now := time.Now().UTC().Format(timeformat)
 	log.Info(now)
 
 	// rl := log.NewRLog("test", 80, "Debug", "January 1th 2006, 01:04:05.100")
