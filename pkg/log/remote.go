@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -290,6 +291,10 @@ func (l *RLog) sendJson(data map[string]interface{}) bool {
 		return false
 	}
 
+	if os.Getenv("GU_REMOTE_LOG_DEBUG") == "true" {
+		fmt.Println(string(payload))
+	}
+
 	_, err = conn.Write(payload)
 	if err != nil {
 		Err(err, "cannot write payload")
@@ -301,6 +306,10 @@ func (l *RLog) sendJson(data map[string]interface{}) bool {
 func (l *RLog) sendString(data string) bool {
 	if l.Address == "" {
 		return false
+	}
+
+	if os.Getenv("GU_REMOTE_LOG_DEBUG") == "true" {
+		fmt.Println(data)
 	}
 
 	conn := l.connect()
