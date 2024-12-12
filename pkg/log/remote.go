@@ -279,13 +279,16 @@ func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, seve
 	data[l.Keys.Message] = msg
 
 	// timestamp
-	var ts string
+	var ts time.Time
 	if l.IsUtc {
-		ts = time.Now().UTC().Format(l.TimeFormat)
+		ts = time.Now().UTC()
 	} else {
-		ts = time.Now().Format(l.TimeFormat)
+		ts = time.Now()
 	}
-	data[l.Keys.Timestamp] = ts
+	if os.Getenv("GU_REMOTE_LOG_DEBUG") == "true" {
+		fmt.Println("ts:", ts)
+	}
+	data[l.Keys.Timestamp] = ts.Format(l.TimeFormat)
 
 	// copy additional
 	if add != nil {
