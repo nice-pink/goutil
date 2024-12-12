@@ -99,6 +99,10 @@ func NewRLogExt(host string, port int, logLevel, timeFormat string, isUtc bool, 
 		tf = time.DateTime
 	}
 
+	if os.Getenv("GU_REMOTE_LOG_DEBUG") == "true" {
+		fmt.Println("Configured rlog. Address:", address, ", Keys:", keys, ", Timeformat:", tf)
+	}
+
 	rlog := &RLog{
 		Address:    address,
 		Protocol:   protocol,
@@ -263,6 +267,9 @@ func (l *RLog) connect() net.Conn {
 
 func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, severity string) {
 	if l.Address == "" {
+		if os.Getenv("GU_REMOTE_LOG_DEBUG") == "true" {
+			fmt.Println("No address for remote logging.")
+		}
 		return
 	}
 
@@ -293,11 +300,17 @@ func (l *RLog) sendJsonWithSeverity(msg string, add map[string]interface{}, seve
 
 func (l *RLog) sendJson(data map[string]interface{}) bool {
 	if l.Address == "" {
+		if os.Getenv("GU_REMOTE_LOG_DEBUG") == "true" {
+			fmt.Println("No address for remote logging.")
+		}
 		return false
 	}
 
 	conn := l.connect()
 	if conn == nil {
+		if os.Getenv("GU_REMOTE_LOG_DEBUG") == "true" {
+			fmt.Println("No connection for remote logging.")
+		}
 		return false
 	}
 	defer conn.Close()
