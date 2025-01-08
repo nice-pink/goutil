@@ -122,13 +122,14 @@ func Flags(newline, goEnvVars bool) {
 	}
 
 	// flags
-	fmt.Println("Flags:")
+	fmt.Println(Blue + "Flags:")
 	flag.VisitAll(func(f *flag.Flag) {
 		fmt.Printf(Blue+"-%s: %s\n"+Reset, f.Name, f.Value)
 	})
 
 	// go env vars
 	if goEnvVars {
+		fmt.Println()
 		fmt.Println(Blue+"GOMAXPROCS:", runtime.GOMAXPROCS(0), Reset)
 		fmt.Println(Blue+"GOMEMLIMIT:", os.Getenv("GOMEMLIMIT"), Reset)
 	}
