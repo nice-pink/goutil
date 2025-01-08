@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -101,19 +102,38 @@ func Notify(logs ...any) {
 	fmt.Println(params...)
 }
 
-func Time() {
-	fmt.Println(time.Now())
+func Success(logs ...any) {
+	var params []any
+	if strings.ToLower(os.Getenv("LOG_IGNORE_COLOR")) == "true" {
+		params = append([]any{time.Now().Format(time.DateTime) + " INFO:"}, logs...)
+	} else {
+		params = append([]any{Green + time.Now().Format(time.DateTime) + " INFO:" + Reset}, logs...)
+	}
+	fmt.Println(params...)
 }
 
-func Flags(withNewLine bool) {
-	if withNewLine {
+func Time() {
+	fmt.Println(time.Now().Format(time.DateTime))
+}
+
+func Flags(newline, goEnvVars bool) {
+	if newline {
 		fmt.Println()
 	}
+
+	// flags
 	fmt.Println("Flags:")
 	flag.VisitAll(func(f *flag.Flag) {
 		fmt.Printf(Blue+"-%s: %s\n"+Reset, f.Name, f.Value)
 	})
-	if withNewLine {
+
+	// go env vars
+	if goEnvVars {
+		fmt.Println("GOMAXPROCS:", runtime.GOMAXPROCS(0))
+		fmt.Println("GOMEMLIMIT:", os.Getenv("GOMEMLIMIT"))
+	}
+
+	if newline {
 		fmt.Println()
 	}
 }
