@@ -130,3 +130,9 @@ func Flags(goEnvVars bool) {
 		fmt.Println(Blue+"GOMEMLIMIT:", os.Getenv("GOMEMLIMIT"), Reset)
 	}
 }
+
+func StartApp() {
+	fmt.Println("*** Start")
+	Flags(true)
+	Newline()
+}
