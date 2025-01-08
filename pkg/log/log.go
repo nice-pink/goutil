@@ -116,11 +116,7 @@ func Time() {
 	fmt.Println(time.Now().Format(time.DateTime))
 }
 
-func Flags(newline, goEnvVars bool) {
-	if newline {
-		fmt.Println()
-	}
-
+func Flags(goEnvVars bool) {
 	// flags
 	fmt.Println(Blue + "Flags:")
 	flag.VisitAll(func(f *flag.Flag) {
@@ -132,9 +128,5 @@ func Flags(newline, goEnvVars bool) {
 		fmt.Println()
 		fmt.Println(Blue+"GOMAXPROCS:", runtime.GOMAXPROCS(0), Reset)
 		fmt.Println(Blue+"GOMEMLIMIT:", os.Getenv("GOMEMLIMIT"), Reset)
-	}
-
-	if newline {
-		fmt.Println()
 	}
 }
