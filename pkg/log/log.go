@@ -129,8 +129,8 @@ func Flags(newline, goEnvVars bool) {
 
 	// go env vars
 	if goEnvVars {
-		fmt.Println("GOMAXPROCS:", runtime.GOMAXPROCS(0))
-		fmt.Println("GOMEMLIMIT:", os.Getenv("GOMEMLIMIT"))
+		fmt.Println(Blue+"GOMAXPROCS:", runtime.GOMAXPROCS(0))
+		fmt.Println(Blue+"GOMEMLIMIT:", os.Getenv("GOMEMLIMIT"))
 	}
 
 	if newline {
