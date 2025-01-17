@@ -45,6 +45,15 @@ func OpenFile(path string, printError bool) (file io.Reader, err error) {
 	return openFile, nil
 }
 
+func GetFileSize(path string) int64 {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		log.Err(err)
+		return -1
+	}
+	return fileInfo.Size()
+}
+
 // create
 
 func CreateFile(path string, printError bool) (file io.Writer, err error) {
