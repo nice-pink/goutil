@@ -87,9 +87,13 @@ func Critical(logs ...any) {
 
 // special
 
-func Plain(logs ...any) {
+func PlainTs(logs ...any) {
 	params := append([]any{time.Now().Format(time.DateTime) + ":"}, logs...)
 	fmt.Println(params...)
+}
+
+func Plain(logs ...any) {
+	fmt.Println(logs...)
 }
 
 func Notify(logs ...any) {
