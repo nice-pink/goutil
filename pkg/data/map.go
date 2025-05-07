@@ -4,6 +4,10 @@ func PatchMapOverwrite(in, patch map[string]any) map[string]any {
 	if patch == nil {
 		return in
 	}
+	if in == nil {
+		return patch
+	}
+
 	for k, v := range patch {
 		in[k] = v
 	}
@@ -13,6 +17,9 @@ func PatchMapOverwrite(in, patch map[string]any) map[string]any {
 func PatchMap(in, patch map[string]any) map[string]any {
 	if patch == nil {
 		return in
+	}
+	if in == nil {
+		return patch
 	}
 
 	for k, v := range patch {
