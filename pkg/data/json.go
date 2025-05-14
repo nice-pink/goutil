@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func DumpJson(i interface{}, filepath string) {
+func DumpJson(i any, filepath string) {
 
 	j, _ := json.MarshalIndent(i, "", "  ")
 	// fmt.Println(string(j))
@@ -29,8 +29,8 @@ func PrettyPrint(i interface{}) string {
 	return string(s)
 }
 
-func GetJson(input string) (map[string]interface{}, error) {
-	var output map[string]interface{}
+func GetJson(input string) (map[string]any, error) {
+	var output map[string]any
 
 	if !strings.HasPrefix(input, "@") {
 		// is json input string
@@ -50,8 +50,8 @@ func GetJson(input string) (map[string]interface{}, error) {
 	return output, err
 }
 
-func GetJsonArray(input string) ([]map[string]interface{}, error) {
-	var output []map[string]interface{}
+func GetJsonArray(input string) ([]map[string]any, error) {
+	var output []map[string]any
 
 	if !strings.HasPrefix(input, "@") {
 		// is json input string

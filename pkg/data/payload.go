@@ -16,11 +16,17 @@ func GetPayload(value string) []byte {
 
 	if strings.HasPrefix(value, "@") {
 		// get payload from file
+		var m map[string]any
 		filepath := strings.TrimPrefix(value, "@")
 		data, err := os.ReadFile(filepath)
 		if err != nil {
 			log.Err(err, "payload from file", filepath)
 		}
+		err = json.Unmarshal(data, &m)
+		if err != nil {
+			log.Err(err, "unmarshal payload from file", filepath)
+		}
+		data, _ = json.Marshal(m)
 		return data
 	}
 
