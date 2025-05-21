@@ -1,7 +1,9 @@
 package network
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 
@@ -81,7 +83,9 @@ func (c *Client) Request(req *http.Request, headers Headers, authRequired bool) 
 	// request
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		log.Err(err, "Could not send request.")
+		if c.verbose {
+			log.Err(err, "Could not send request.")
+		}
 		return nil, err
 	}
 
@@ -96,6 +100,53 @@ func (c *Client) Request(req *http.Request, headers Headers, authRequired bool) 
 
 	return resp, nil
 }
+
+// convenience
+
+func (c *Client) RequestData(req *http.Request, headers Headers, authRequired bool) ([]byte, error) {
+	resp, err := c.Request(req, headers, authRequired)
+	if err != nil {
+		if c.verbose {
+			log.Err(err, "response error", req.URL.String())
+		}
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// read data
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		if c.verbose {
+			log.Err(err, "read body", req.URL.String())
+		}
+		return nil, err
+	}
+
+	return data, err
+}
+
+func (c *Client) RequestMap(req *http.Request, headers Headers, authRequired bool) (map[string]any, error) {
+	data, err := c.RequestData(req, headers, authRequired)
+	if err != nil {
+		if c.verbose {
+			log.Err(err, "response error", req.URL.String())
+		}
+		return nil, err
+	}
+
+	// unmarshal to map
+	var m map[string]any
+	err = json.Unmarshal(data, &m)
+	if err != nil {
+		if c.verbose {
+			log.Err(err, "unmarshal error", req.URL.String(), string(data))
+		}
+		return nil, err
+	}
+	return m, err
+}
+
+// intern
 
 func (c *Client) addHeaders(req *http.Request, headers Headers) {
 	// bearer token
