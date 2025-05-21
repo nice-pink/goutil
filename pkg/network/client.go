@@ -78,7 +78,7 @@ func (c *Client) Request(req *http.Request, headers Headers, authRequired bool) 
 	}
 
 	// set headers
-	c.addHeaders(req, headers)
+	c.addHeaders(req, headers, authRequired)
 
 	// request
 	resp, err := c.httpClient.Do(req)
@@ -148,10 +148,15 @@ func (c *Client) RequestMap(req *http.Request, headers Headers, authRequired boo
 
 // intern
 
-func (c *Client) addHeaders(req *http.Request, headers Headers) {
+func (c *Client) addHeaders(req *http.Request, headers Headers, authRequired bool) {
 	// bearer token
-	if c.token != "" {
-		req.Header.Add("Authorization", "Bearer "+c.token)
+	if authRequired {
+		if c.token != "" {
+			req.Header.Add("Authorization", "Bearer "+c.token)
+		}
+		if c.basicAuth != "" {
+			req.Header.Add("Authorization", "Basic "+c.basicAuth)
+		}
 	}
 	// shared headers
 	for k, v := range c.sharedHeaders {
