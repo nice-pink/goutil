@@ -41,7 +41,14 @@ func (c *Client) ClearToken() {
 }
 
 func (c *Client) RefreshToken() error {
-	if c.authFn == nil {
+	if c.basicAuth != "" {
+		// use basic auth
+		return nil
+	}
+
+	// use token
+	if c.authFn == nil && c.token == "" {
+		// token can't be generated
 		return errors.New("no auth function")
 	}
 
@@ -61,7 +68,7 @@ func (c *Client) Request(req *http.Request, headers Headers, authRequired bool) 
 		log.Verbose(strings.ToUpper(req.Method), req.URL)
 	}
 
-	if authRequired && c.token == "" {
+	if authRequired {
 		err := c.RefreshToken()
 		if err != nil {
 			return nil, err
