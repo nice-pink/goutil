@@ -10,7 +10,7 @@ import (
 
 type Headers map[string]string
 
-type AuthFn func() error
+type AuthFn func() (string, error)
 
 type Client struct {
 	verbose       bool
@@ -44,7 +44,14 @@ func (c *Client) RefreshToken() error {
 	if c.authFn == nil {
 		return errors.New("no auth function")
 	}
-	return c.authFn()
+
+	// get token
+	token, err := c.authFn()
+	if err != nil {
+		return err
+	}
+	c.token = token
+	return nil
 }
 
 // request
