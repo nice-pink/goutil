@@ -8,7 +8,6 @@ import (
 )
 
 func DumpJson(i any, filepath string) {
-
 	j, _ := json.MarshalIndent(i, "", "  ")
 	// fmt.Println(string(j))
 
@@ -29,44 +28,32 @@ func PrettyPrint(i interface{}) string {
 	return string(s)
 }
 
-func GetJson(input string) (map[string]any, error) {
-	var output map[string]any
+func GetJson(input string, output any) error {
+	data, err := GetData(input)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, &output)
+}
 
+func GetData(input string) ([]byte, error) {
 	if !strings.HasPrefix(input, "@") {
 		// is json input string
-		err := json.Unmarshal([]byte(input), &output)
-		if err != nil {
-			return nil, err
-		}
-		return output, nil
+		return []byte(input), nil
 	}
 
 	// is json input file
-	data, err := os.ReadFile(strings.TrimPrefix(input, "@"))
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(data, &output)
+	return os.ReadFile(strings.TrimPrefix(input, "@"))
+}
+
+func GetJsonMap(input string) (map[string]any, error) {
+	var output map[string]any
+	err := GetJson(input, &output)
 	return output, err
 }
 
 func GetJsonArray(input string) ([]map[string]any, error) {
 	var output []map[string]any
-
-	if !strings.HasPrefix(input, "@") {
-		// is json input string
-		err := json.Unmarshal([]byte(input), &output)
-		if err != nil {
-			return nil, err
-		}
-		return output, nil
-	}
-
-	// is json input file
-	data, err := os.ReadFile(strings.TrimPrefix(input, "@"))
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(data, &output)
+	err := GetJson(input, &output)
 	return output, err
 }

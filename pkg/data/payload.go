@@ -2,10 +2,7 @@ package data
 
 import (
 	"encoding/json"
-	"os"
 	"strings"
-
-	"github.com/nice-pink/goutil/pkg/log"
 )
 
 func GetPayload(value string) []byte {
@@ -16,31 +13,19 @@ func GetPayload(value string) []byte {
 
 	if strings.HasPrefix(value, "@") {
 		// get payload from file
-		var m map[string]any
-		filepath := strings.TrimPrefix(value, "@")
-		data, err := os.ReadFile(filepath)
+		m, err := GetJsonMap(value)
 		if err != nil {
-			log.Err(err, "payload from file", filepath)
+			return nil
 		}
-		err = json.Unmarshal(data, &m)
-		if err != nil {
-			log.Err(err, "unmarshal payload from file", filepath)
-		}
-		data, _ = json.Marshal(m)
+		// marshal data to remove invalid chars
+		data, _ := json.Marshal(m)
 		return data
 	}
-
 	// return json string as data
 	return []byte(value)
 }
 
-func GetPayloadMap(value string) map[string]interface{} {
-	data := GetPayload(value)
-
-	m := map[string]interface{}{}
-	err := json.Unmarshal(data, &m)
-	if err != nil {
-		log.Err(err, "unmarshal payload", string(data))
-	}
+func GetJsonPayload(value string) map[string]any {
+	m, _ := GetJsonMap(value)
 	return m
 }

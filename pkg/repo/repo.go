@@ -353,7 +353,6 @@ func (g *RepoHandle) TagRepo(tag, msg string, push bool) error {
 }
 
 func (g *RepoHandle) TagExists(tag string) bool {
-	tagFoundErr := "tag was found"
 	// Info("git show-ref --tag")
 	tags, err := g.repo.TagObjects()
 	if err != nil {
@@ -365,11 +364,11 @@ func (g *RepoHandle) TagExists(tag string) bool {
 	err = tags.ForEach(func(t *object.Tag) error {
 		if t.Name == tag {
 			res = true
-			return fmt.Errorf(tagFoundErr)
+			return fmt.Errorf("tag was found")
 		}
 		return nil
 	})
-	if err != nil && err.Error() != tagFoundErr {
+	if err != nil && err.Error() != "tag was found" {
 		fmt.Println("iterate tags error")
 		fmt.Println(err)
 		return false

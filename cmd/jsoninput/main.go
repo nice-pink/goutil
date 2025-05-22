@@ -16,7 +16,7 @@ func main() {
 	if *inputJson != "" {
 		fmt.Println(inputJson)
 
-		jsonMap, err := data.GetJson(*inputJson)
+		jsonMap, err := data.GetJsonMap(*inputJson)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(2)
