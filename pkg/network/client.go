@@ -65,7 +65,49 @@ func (c *Client) RefreshToken() error {
 
 // request
 
-func (c *Client) Request(req *http.Request, headers Headers, authRequired bool) (*http.Response, error) {
+func (c *Client) Request(method, url string, body io.Reader, headers Headers, authRequired bool) (*http.Response, error) {
+	if c.verbose {
+		log.Verbose(strings.ToUpper(method), url)
+	}
+
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		log.Err(err, "Could not create request.", method, url)
+		return nil, err
+	}
+
+	if authRequired {
+		err := c.RefreshToken()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// set headers
+	c.addHeaders(req, headers, authRequired)
+
+	// request
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		if c.verbose {
+			log.Err(err, "Could not send request.")
+		}
+		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		if c.verbose {
+			log.Info("not authorized -> clear token.", req.URL, resp.StatusCode)
+		}
+		c.ClearToken()
+		// recursive call after clearing token
+		return c.Request(method, url, body, headers, authRequired)
+	}
+
+	return resp, nil
+}
+
+func (c *Client) RequestReq(req *http.Request, headers Headers, authRequired bool) (*http.Response, error) {
 	if c.verbose {
 		log.Verbose(strings.ToUpper(req.Method), req.URL)
 	}
@@ -95,7 +137,7 @@ func (c *Client) Request(req *http.Request, headers Headers, authRequired bool) 
 		}
 		c.ClearToken()
 		// recursive call after clearing token
-		return c.Request(req, headers, authRequired)
+		return c.RequestReq(req, headers, authRequired)
 	}
 
 	return resp, nil
@@ -103,11 +145,11 @@ func (c *Client) Request(req *http.Request, headers Headers, authRequired bool) 
 
 // convenience
 
-func (c *Client) RequestData(req *http.Request, headers Headers, authRequired bool) ([]byte, error) {
-	resp, err := c.Request(req, headers, authRequired)
+func (c *Client) RequestData(method, url string, body io.Reader, headers Headers, authRequired bool) ([]byte, error) {
+	resp, err := c.Request(method, url, body, headers, authRequired)
 	if err != nil {
 		if c.verbose {
-			log.Err(err, "response error", req.URL.String())
+			log.Err(err, "response error", url)
 		}
 		return nil, err
 	}
@@ -117,7 +159,7 @@ func (c *Client) RequestData(req *http.Request, headers Headers, authRequired bo
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		if c.verbose {
-			log.Err(err, "read body", req.URL.String())
+			log.Err(err, "read body", url)
 		}
 		return nil, err
 	}
@@ -125,11 +167,11 @@ func (c *Client) RequestData(req *http.Request, headers Headers, authRequired bo
 	return data, err
 }
 
-func (c *Client) RequestMap(req *http.Request, headers Headers, authRequired bool) (map[string]any, error) {
-	data, err := c.RequestData(req, headers, authRequired)
+func (c *Client) RequestMap(method, url string, body io.Reader, headers Headers, authRequired bool) (map[string]any, error) {
+	data, err := c.RequestData(method, url, body, headers, authRequired)
 	if err != nil {
 		if c.verbose {
-			log.Err(err, "response error", req.URL.String())
+			log.Err(err, "response error", url)
 		}
 		return nil, err
 	}
@@ -139,7 +181,7 @@ func (c *Client) RequestMap(req *http.Request, headers Headers, authRequired boo
 	err = json.Unmarshal(data, &m)
 	if err != nil {
 		if c.verbose {
-			log.Err(err, "unmarshal error", req.URL.String(), string(data))
+			log.Err(err, "unmarshal error", url, string(data))
 		}
 		return nil, err
 	}
