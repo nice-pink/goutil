@@ -54,6 +54,11 @@ func (c *Client) RefreshToken() error {
 		return errors.New("no auth function")
 	}
 
+	if c.token != "" {
+		// has token
+		return nil
+	}
+
 	// get token
 	token, err := c.authFn()
 	if err != nil {
