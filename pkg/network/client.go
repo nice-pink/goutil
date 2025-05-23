@@ -112,42 +112,6 @@ func (c *Client) Request(method, url string, body io.Reader, headers Headers, au
 	return resp, nil
 }
 
-func (c *Client) RequestReq(req *http.Request, headers Headers, authRequired bool) (*http.Response, error) {
-	if c.verbose {
-		log.Verbose(strings.ToUpper(req.Method), req.URL)
-	}
-
-	if authRequired {
-		err := c.RefreshToken()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// set headers
-	c.addHeaders(req, headers, authRequired)
-
-	// request
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		if c.verbose {
-			log.Err(err, "Could not send request.")
-		}
-		return nil, err
-	}
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		if c.verbose {
-			log.Info("not authorized -> clear token.", req.URL, resp.StatusCode)
-		}
-		c.ClearToken()
-		// recursive call after clearing token
-		return c.RequestReq(req, headers, authRequired)
-	}
-
-	return resp, nil
-}
-
 // convenience
 
 func (c *Client) RequestData(method, url string, body io.Reader, headers Headers, authRequired bool) ([]byte, error) {
@@ -191,6 +155,26 @@ func (c *Client) RequestMap(method, url string, body io.Reader, headers Headers,
 		return nil, err
 	}
 	return m, err
+}
+
+func (c *Client) RequestType(method, url string, body io.Reader, headers Headers, authRequired bool, output any) error {
+	data, err := c.RequestData(method, url, body, headers, authRequired)
+	if err != nil {
+		if c.verbose {
+			log.Err(err, "response error", url)
+		}
+		return err
+	}
+
+	// unmarshal to map
+	err = json.Unmarshal(data, &output)
+	if err != nil {
+		if c.verbose {
+			log.Err(err, "unmarshal error", url, string(data))
+		}
+		return err
+	}
+	return err
 }
 
 // intern
