@@ -95,7 +95,7 @@ func (c *Client) Request(method, url string, body io.Reader, headers Headers, au
 		return nil, err
 	}
 
-	if resp.StatusCode == http.StatusUnauthorized {
+	if authRequired && resp.StatusCode == http.StatusUnauthorized {
 		if c.verbose {
 			log.Info("not authorized -> clear token.", req.URL, resp.StatusCode)
 		}
